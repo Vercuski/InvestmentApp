@@ -1,0 +1,6 @@
+<AnalyseParams>
+  <TargetExecutable>C:\Program Files\dotnet\dotnet.exe</TargetExecutable>
+  <TargetArguments>test C:\Source\github\InvestmentApp.Template\source\InvestmentApp.sln</TargetArguments>
+  <WorkingDir>C:\Source\github\InvestmentApp.Template\source</WorkingDir>
+  <Output>C:\Source\github\InvestmentApp.Template\source\coverage.xml</Output>
+</AnalyseParams>
