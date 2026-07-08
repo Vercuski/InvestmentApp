@@ -5,7 +5,7 @@ namespace InvestmentApp.Application.Actions;
 
 /// <summary>
 /// Computes the Moving Average Convergence Divergence (MACD) indicator for a
-/// chronological series of <see cref="Stock"/> price bars for a single ticker.
+/// chronological series of <see cref="StockData"/> price bars for a single ticker.
 /// </summary>
 /// <remarks>
 /// MACD = EMA(fastPeriod) - EMA(slowPeriod), computed on a chosen price field.
@@ -20,14 +20,14 @@ public sealed class MacdCalculator
     public int SlowPeriod { get; }
     public int SignalPeriod { get; }
 
-    private readonly Func<Stock, decimal> _priceSelector;
+    private readonly Func<StockData, decimal> _priceSelector;
 
     /// <summary>
     /// Creates a calculator with the given EMA periods.
     /// </summary>
     /// <param name="priceSelector">
-    /// Selects which price field of a <see cref="Stock"/> feeds the calculation.
-    /// Defaults to <see cref="Stock.Close"/>; pass <c>s => s.AdjustedClose</c> instead
+    /// Selects which price field of a <see cref="StockData"/> feeds the calculation.
+    /// Defaults to <see cref="StockData.Close"/>; pass <c>s => s.AdjustedClose</c> instead
     /// to account for splits and dividends.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when a period is not positive.</exception>
@@ -36,7 +36,7 @@ public sealed class MacdCalculator
         int fastPeriod = 12,
         int slowPeriod = 26,
         int signalPeriod = 9,
-        Func<Stock, decimal>? priceSelector = null)
+        Func<StockData, decimal>? priceSelector = null)
     {
         if (fastPeriod <= 0)
         {
@@ -66,21 +66,21 @@ public sealed class MacdCalculator
 
     /// <summary>
     /// Computes the MACD series for the given price bars, which must all belong to the
-    /// same ticker. Bars are sorted by <see cref="Stock.PriceDate"/> before computing,
+    /// same ticker. Bars are sorted by <see cref="StockData.Date"/> before computing,
     /// so callers do not need to pre-sort.
     /// </summary>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="series"/> is null or does not contain enough bars to
     /// produce at least one signal-line value.
     /// </exception>
-    public IReadOnlyList<MacdPoint> Calculate(IEnumerable<Stock> series)
+    public IReadOnlyList<MacdPoint> Calculate(IEnumerable<StockData> series)
     {
         if (series is null)
         {
             throw new ArgumentException("Series cannot be null.", nameof(series));
         }
 
-        var bars = series.OrderBy(s => s.PriceDate).ToList();
+        var bars = series.OrderBy(s => s.Date).ToList();
 
         int minimumBars = SlowPeriod + SignalPeriod;
         if (bars.Count < minimumBars)
@@ -130,7 +130,7 @@ public sealed class MacdCalculator
             previousHistogram = histogram;
 
             int barIndex = macdOffset + j;
-            points.Add(new MacdPoint(bars[barIndex].PriceDate, macd, signal, histogram, crossover));
+            points.Add(new MacdPoint(bars[barIndex].TickerId, bars[barIndex].Date, macd, signal, histogram, crossover));
         }
 
         return points;

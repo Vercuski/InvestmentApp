@@ -1,3 +1,4 @@
+using InvestmentApp.Application.Actions;
 using InvestmentApp.Application.Exceptions;
 using InvestmentApp.Domain.Abstractions;
 using InvestmentApp.Domain.Options;
@@ -14,8 +15,16 @@ public static class DependencyInjection
         builder.AddOptionsRegistration();
         builder.AddMediatorRegistration();
         builder.AddErrorHandling();
+        builder.AddCalculations();
         return builder;
     }
+
+    private static IHostApplicationBuilder AddCalculations(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<MacdCalculator>();
+        return builder;
+    }
+
 
     private static IHostApplicationBuilder AddErrorHandling(this IHostApplicationBuilder builder)
     {

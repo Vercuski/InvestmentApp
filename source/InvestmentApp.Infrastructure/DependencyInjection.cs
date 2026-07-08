@@ -1,4 +1,6 @@
+using InvestmentApp.Application.Services;
 using InvestmentApp.Infrastructure.HealthChecks;
+using InvestmentApp.Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +24,22 @@ public static class DependencyInjection
 
     public static IHostApplicationBuilder AddInfrastructureRegistration(this IHostApplicationBuilder builder)
     {
+        builder.AddServicesRegistration();
+        builder.AddVPNRegistration();
         builder.AddHealthChecksRegistration();
         builder.AddLoggingRegistration();
+        return builder;
+    }
+
+    private static IHostApplicationBuilder AddServicesRegistration(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddHttpClient<IDataDownloadService, DataDownloadService>(client =>
+            client.BaseAddress = new Uri("https://query2.finance.yahoo.com/")
+        );
+        builder.Services.AddHttpClient("localhost", client =>
+        {
+            client.BaseAddress = new Uri("https://localhost:8080/");
+        });
         return builder;
     }
 
@@ -37,6 +53,12 @@ public static class DependencyInjection
             healthCheckBuilder.AddCheck(healthCheckType.Name,
                 (IHealthCheck)Activator.CreateInstance(healthCheckType)!);
         }
+        return builder;
+    }
+
+    private static IHostApplicationBuilder AddVPNRegistration(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IVPNService, VPNService>();
         return builder;
     }
 

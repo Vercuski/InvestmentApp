@@ -10,9 +10,11 @@
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.21.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\InvestmentApp.Application\InvestmentApp.Application.csproj" />
+    <ProjectReference Include="..\InvestmentApp.Domain\InvestmentApp.Domain.csproj" />
   </ItemGroup>
 </Project>

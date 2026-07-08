@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.19.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
+    <PackageReference Include="Z.Dapper.Plus" Version="9.3.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Actions\CalculationHandler\Queries\" />
+    <Folder Include="Actions\TickerHandler\Commands\" />
     <Folder Include="Contracts\Dtos\" />
     <Folder Include="Contracts\Poco\" />
   </ItemGroup>
