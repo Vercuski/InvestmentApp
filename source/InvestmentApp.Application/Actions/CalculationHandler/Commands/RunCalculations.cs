@@ -12,7 +12,8 @@ public sealed record RunCalculationRequest() : IMediatRCommandRequest<HttpStatus
 internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
     MacdCalculator macdCalculator,
     RsiCalculator rsiCalculator,
-    BollingerBandsCalculator bollingerBandsCalculator)
+    BollingerBandsCalculator bollingerBandsCalculator,
+    ObvCalculator obvCalculator)
     : IMediatRCommandHandler<RunCalculationRequest, HttpStatusCode>
 {
     public async Task<HttpStatusCode> Handle(RunCalculationRequest request
@@ -29,6 +30,7 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
                 var macdCalculation = macdCalculator.Calculate(stockDataList);
                 var rsiCalculation = rsiCalculator.Calculate(stockDataList);
                 var bollingerBandsCalculation = bollingerBandsCalculator.Calculate(stockDataList);
+                var obvCalculation = obvCalculator.Calculate(stockDataList);
             }
         }
         catch (Exception ex)

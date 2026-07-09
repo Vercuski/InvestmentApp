@@ -24,6 +24,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<MacdCalculator>();
         builder.Services.AddScoped<RsiCalculator>();
         builder.Services.AddScoped<BollingerBandsCalculator>();
+        builder.Services.AddScoped<ObvCalculator>();
         return builder;
     }
 
