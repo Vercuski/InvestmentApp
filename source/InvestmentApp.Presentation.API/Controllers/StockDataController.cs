@@ -1,10 +1,10 @@
-using InvestmentApp.Domain.Entities;
+using InvestmentApp.Application.Actions.StockDataHandler.Commands;
 using InvestmentApp.Application.Actions.StockDataHandler.Queries;
+using InvestmentApp.Application.Actions.TickerHandler.Queries;
+using InvestmentApp.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using InvestmentApp.Application.Actions.StockDataHandler.Commands;
-using InvestmentApp.Application.Actions.TickerHandler.Queries;
 
 namespace InvestmentApp.Presentation.API.Controllers;
 

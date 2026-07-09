@@ -1,7 +1,7 @@
 using InvestmentApp.Domain.Entities;
 using InvestmentApp.Domain.Enums;
 
-namespace InvestmentApp.Application.Actions;
+namespace InvestmentApp.Application.Calculators;
 
 /// <summary>
 /// Computes the Moving Average Convergence Divergence (MACD) indicator for a

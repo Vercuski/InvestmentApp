@@ -1,16 +1,18 @@
 ﻿using Dapper;
 using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.ConnectionFactory;
-using InvestmentApp.Application.Services;
+using InvestmentApp.Application.Calculators;
 using InvestmentApp.Domain.Entities;
 using System.Data;
 using System.Net;
-using Z.Dapper.Plus;
 
-namespace InvestmentApp.Application.Actions.StockDataHandler.Commands;
+namespace InvestmentApp.Application.Actions.CalculationHandler.Commands;
 
 public sealed record RunCalculationRequest() : IMediatRCommandRequest<HttpStatusCode>;
-internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory, MacdCalculator macdCalculator)
+internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
+    MacdCalculator macdCalculator,
+    RsiCalculator rsiCalculator,
+    BollingerBandsCalculator bollingerBandsCalculator)
     : IMediatRCommandHandler<RunCalculationRequest, HttpStatusCode>
 {
     public async Task<HttpStatusCode> Handle(RunCalculationRequest request
@@ -21,9 +23,12 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory, M
         {
             IDbConnection dbConnection = dbConnectionFactory.CreateWriteConnection();
             var tickerList = dbConnection.Query<Ticker>("SELECT tickerId, tickerSymbol FROM Ticker ORDER BY tickerSymbol").ToList();
-            foreach(Ticker ticker in tickerList) {
+            foreach (Ticker ticker in tickerList)
+            {
                 var stockDataList = dbConnection.Query<StockData>($"SELECT [tickerId], [open], [high], [low], [close], [volume], [date] FROM StockData WHERE [tickerId] = {ticker.TickerId} ORDER BY [date]").ToList();
                 var macdCalculation = macdCalculator.Calculate(stockDataList);
+                var rsiCalculation = rsiCalculator.Calculate(stockDataList);
+                var bollingerBandsCalculation = bollingerBandsCalculator.Calculate(stockDataList);
             }
         }
         catch (Exception ex)

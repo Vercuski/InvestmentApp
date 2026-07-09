@@ -14,9 +14,9 @@ internal sealed class GetTickerBySymbolHandler(IDbConnectionFactory dbConnection
     {
         var dbConnection = dbConnectionFactory.CreateReadConnection();
         Ticker? response = null;
-            //dbContext.Ticker.AsNoTracking()
-            //.Where(x => x.TickerSymbol == request.TickerSymbol)
-            //.SingleOrDefault();
+        //dbContext.Ticker.AsNoTracking()
+        //.Where(x => x.TickerSymbol == request.TickerSymbol)
+        //.SingleOrDefault();
 
         return Task.FromResult(response);
     }

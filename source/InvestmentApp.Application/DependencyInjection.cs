@@ -1,4 +1,4 @@
-using InvestmentApp.Application.Actions;
+using InvestmentApp.Application.Calculators;
 using InvestmentApp.Application.Exceptions;
 using InvestmentApp.Domain.Abstractions;
 using InvestmentApp.Domain.Options;
@@ -22,6 +22,8 @@ public static class DependencyInjection
     private static IHostApplicationBuilder AddCalculations(this IHostApplicationBuilder builder)
     {
         builder.Services.AddScoped<MacdCalculator>();
+        builder.Services.AddScoped<RsiCalculator>();
+        builder.Services.AddScoped<BollingerBandsCalculator>();
         return builder;
     }
 

@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record MacdPoint : RecordEntity
 {
-    public  int TickerId { get; set;  }
+    public int TickerId { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal Macd { get; set; }
     public decimal Signal { get; set; }
