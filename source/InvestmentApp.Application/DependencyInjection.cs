@@ -25,6 +25,13 @@ public static class DependencyInjection
         builder.Services.AddScoped<RsiCalculator>();
         builder.Services.AddScoped<BollingerBandsCalculator>();
         builder.Services.AddScoped<ObvCalculator>();
+        builder.Services.AddScoped<StochasticCalculator>();
+        builder.Services.AddScoped<AdxCalculator>();
+        builder.Services.AddScoped<AtrCalculator>();
+        builder.Services.AddScoped<CciCalculator>();
+        builder.Services.AddScoped<ChaikinMoneyFlowCalculator>();
+        builder.Services.AddScoped<KeltnerChannelsCalculator>();
+        builder.Services.AddScoped<MovingAverageCrossoverCalculator>();
         return builder;
     }
 
