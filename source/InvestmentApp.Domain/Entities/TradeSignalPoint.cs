@@ -6,7 +6,7 @@ namespace InvestmentApp.Domain.Entities;
 /// <summary>
 /// A single composed point of a strategy series: the recommended <see cref="TradeAction"/>,
 /// the market regime that produced it, a confidence score, and an ATR-derived stop-loss
-/// price for risk sizing. Produced by <see cref="Application.Strategies.SignalAggregator"/>
+/// price for risk sizing. Produced by <see cref="InvestmentApp.Application.Calculators.SignalAggregator"/>
 /// from the already-computed outputs of individual indicator calculators.
 /// </summary>
 public sealed record TradeSignalPoint : RecordEntity

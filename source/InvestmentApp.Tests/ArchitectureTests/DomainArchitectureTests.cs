@@ -16,6 +16,8 @@ public class DomainArchitectureTests
             .ResideInNamespace("InvestmentApp.Domain.Entities")
             .Should()
             .Inherit(typeof(Entity))
+            .Or()
+            .Inherit(typeof(RecordEntity))
             .And()
             .BeSealed()
             .GetResult();
