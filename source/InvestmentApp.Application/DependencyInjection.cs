@@ -32,6 +32,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<ChaikinMoneyFlowCalculator>();
         builder.Services.AddScoped<KeltnerChannelsCalculator>();
         builder.Services.AddScoped<MovingAverageCrossoverCalculator>();
+        builder.Services.AddScoped<SignalAggregator>();
         return builder;
     }
 

@@ -89,7 +89,7 @@ public sealed class AtrCalculator
 
         var points = new List<AtrPoint>(bars.Count - Period + 1)
         {
-            new AtrPoint(bars[Period - 1].TickerId, bars[Period - 1].Date, averageTrueRange)
+            new(bars[Period - 1].TickerId, bars[Period - 1].Date, averageTrueRange)
         };
 
         for (int i = Period; i < bars.Count; i++)

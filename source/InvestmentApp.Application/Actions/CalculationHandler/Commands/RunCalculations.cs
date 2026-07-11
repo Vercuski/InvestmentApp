@@ -5,6 +5,8 @@ using InvestmentApp.Application.Calculators;
 using InvestmentApp.Domain.Entities;
 using System.Data;
 using System.Net;
+using System.Text;
+using Z.Dapper.Plus;
 
 namespace InvestmentApp.Application.Actions.CalculationHandler.Commands;
 
@@ -20,7 +22,8 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
     CciCalculator cciCalculator,
     ChaikinMoneyFlowCalculator chaikinMoneyFlowCalculator,
     KeltnerChannelsCalculator keltnerChannelsCalculator,
-    MovingAverageCrossoverCalculator movingAverageCrossoverCalculator)
+    //MovingAverageCrossoverCalculator movingAverageCrossoverCalculator,
+    SignalAggregator signalAggregator)
     : IMediatRCommandHandler<RunCalculationRequest, HttpStatusCode>
 {
     public async Task<HttpStatusCode> Handle(RunCalculationRequest request
@@ -31,6 +34,7 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
         {
             IDbConnection dbConnection = dbConnectionFactory.CreateWriteConnection();
             var tickerList = dbConnection.Query<Ticker>("SELECT tickerId, tickerSymbol FROM Ticker ORDER BY tickerSymbol").ToList();
+            List<TradeSignalPoint> signalAggregatorCalculation = [];
             foreach (Ticker ticker in tickerList)
             {
                 var stockDataList = dbConnection.Query<StockData>($"SELECT [tickerId], [open], [high], [low], [close], [volume], [date] FROM StockData WHERE [tickerId] = {ticker.TickerId} ORDER BY [date]").ToList();
@@ -49,8 +53,17 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
                 var cciCalculation = cciCalculator.Calculate(stockDataList);
                 var chaikinMoneyFlowCalculation = chaikinMoneyFlowCalculator.Calculate(stockDataList);
                 var keltnerChannelsCalculation = keltnerChannelsCalculator.Calculate(stockDataList);
-                var movingAverageCrossoverCalculation = movingAverageCrossoverCalculator.Calculate(stockDataList);
+                //var movingAverageCrossoverCalculation = movingAverageCrossoverCalculator.Calculate(stockDataList);
+                signalAggregatorCalculation.AddRange(signalAggregator.Calculate(
+                    stockDataList,
+                    macdCalculation,
+                    rsiCalculation,
+                    bollingerBandsCalculation,
+                    adxCalculation,
+                    obvCalculation,
+                    atrCalculation));
             }
+            dbConnection.BulkInsert<TradeSignalPoint>(signalAggregatorCalculation);
         }
         catch (Exception ex)
         {
