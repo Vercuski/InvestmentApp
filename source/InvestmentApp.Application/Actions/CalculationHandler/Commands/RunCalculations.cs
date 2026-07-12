@@ -5,8 +5,8 @@ using InvestmentApp.Application.Calculators;
 using InvestmentApp.Domain.Entities;
 using System.Data;
 using System.Net;
-using System.Text;
 using Z.Dapper.Plus;
+using Z.Dapper.Sql;
 
 namespace InvestmentApp.Application.Actions.CalculationHandler.Commands;
 
@@ -32,7 +32,8 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
         HttpStatusCode statusCode = HttpStatusCode.OK;
         try
         {
-            IDbConnection dbConnection = dbConnectionFactory.CreateWriteConnection();
+            using IDbConnection dbConnection = dbConnectionFactory.CreateWriteConnection();
+            dbConnection.TruncateTable<TradeSignalPoint>();
             var tickerList = dbConnection.Query<Ticker>("SELECT tickerId, tickerSymbol FROM Ticker ORDER BY tickerSymbol").ToList();
             List<TradeSignalPoint> signalAggregatorCalculation = [];
             foreach (Ticker ticker in tickerList)

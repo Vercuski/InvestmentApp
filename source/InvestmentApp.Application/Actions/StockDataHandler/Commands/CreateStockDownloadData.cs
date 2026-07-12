@@ -5,6 +5,7 @@ using InvestmentApp.Domain.Entities;
 using System.Data;
 using System.Net;
 using Z.Dapper.Plus;
+using Z.Dapper.Sql;
 
 namespace InvestmentApp.Application.Actions.StockDataHandler.Commands;
 
@@ -19,14 +20,14 @@ internal class CreateStockDownloadHandler(IDbConnectionFactory dbConnectionFacto
         HttpStatusCode statusCode = HttpStatusCode.OK;
         try
         {
-            IDbConnection dbConnection = dbConnectionFactory.CreateWriteConnection();
+            using IDbConnection dbConnection = dbConnectionFactory.CreateWriteConnection();
+            dbConnection.TruncateTable<StockData>();
             const string vpnServer = "us";
             vpnService.ConnectToVPN(vpnServer);
             List<StockData> completeList = [];
             int count = 1;
             int max = request.TickerList.Count;
             foreach (var ticker in request.TickerList)
-            //foreach (var ticker in request.TickerList.Take(10))
             {
                 List<StockData> Stock;
                 (statusCode, Stock) = await dataDownloadService.GetStock(ticker);

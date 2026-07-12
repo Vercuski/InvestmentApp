@@ -25,7 +25,6 @@
     <Folder Include="Actions\CalculationHandler\Queries\" />
     <Folder Include="Actions\TickerHandler\Commands\" />
     <Folder Include="Contracts\Dtos\" />
-    <Folder Include="Contracts\Poco\" />
   </ItemGroup>
 
 </Project>

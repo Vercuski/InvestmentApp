@@ -1,5 +1,7 @@
+using InvestmentApp.Application.Abstractions.Repositories;
 using InvestmentApp.Application.Services;
 using InvestmentApp.Infrastructure.HealthChecks;
+using InvestmentApp.Infrastructure.Repositories;
 using InvestmentApp.Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -28,6 +30,14 @@ public static class DependencyInjection
         builder.AddVPNRegistration();
         builder.AddHealthChecksRegistration();
         builder.AddLoggingRegistration();
+        builder.AddRepositoriesRegistration();
+        return builder;
+    }
+
+    private static IHostApplicationBuilder AddRepositoriesRegistration(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IStockDataRepository, StockDataRepository>();
+        builder.Services.AddScoped<ITradeSignalPointRepository, TradeSignalPointRepository>();
         return builder;
     }
 
