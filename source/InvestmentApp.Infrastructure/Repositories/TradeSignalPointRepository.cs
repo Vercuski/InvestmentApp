@@ -26,7 +26,7 @@ FROM
 		ON T.tickerId = TSP.tickerId
 WHERE
 	[action] <> 'Hold'
-	AND confidence = @confidenceLevel
+	AND confidence >= @confidenceLevel
 	AND SD.[close] < 100
 	AND SD.date in (SELECT MAX(PriceDate) from TradeSignalPoint)
 	AND [action] = @actionType

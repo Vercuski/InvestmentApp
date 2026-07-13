@@ -18,9 +18,9 @@ public class TradeSignalPointController(IMediator mediator) : ControllerBase
     [AllowAnonymous]
     [HttpGet]
     [Route("LatestBuys")]
-    public async Task<ActionResult<List<TradeSignalPointPoco>>> GetLatestBuyTradeSignalPointsRequest()
+    public async Task<ActionResult<List<TradeSignalPointPoco>>> GetLatestBuyTradeSignalPointsRequest([FromQuery] int confidenceLevel = 100)
     {
-        var result = await mediator.Send(new GetLatestBuyTradeSignalPointsRequest());
+        var result = await mediator.Send(new GetLatestBuyTradeSignalPointsRequest(confidenceLevel));
         if (result is null)
         {
             return BadRequest("No Buy Events Found");
@@ -31,9 +31,9 @@ public class TradeSignalPointController(IMediator mediator) : ControllerBase
     [AllowAnonymous]
     [HttpGet]
     [Route("LatestSells")]
-    public async Task<ActionResult<List<TradeSignalPointPoco>>> GetLatestSellTradeSignalPointsRequest()
+    public async Task<ActionResult<List<TradeSignalPointPoco>>> GetLatestSellTradeSignalPointsRequest([FromQuery] int confidenceLevel = 100)
     {
-        var result = await mediator.Send(new GetLatestSellTradeSignalPointsRequest());
+        var result = await mediator.Send(new GetLatestSellTradeSignalPointsRequest(confidenceLevel));
         if (result is null)
         {
             return BadRequest("No Sell Events Found");
