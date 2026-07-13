@@ -1,0 +1,165 @@
+@page "/signals"
+@using InvestmentApp.Application.Contracts.Poco
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Signals</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Trade signals</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="ma-4" />
+}
+else if (_loadError)
+{
+    <MudAlert Severity="Severity.Error" Class="ma-4">
+        Couldn't reach the Investment API at the configured base URL. Check that it's running and reachable.
+    </MudAlert>
+}
+else
+{
+    <MudGrid Class="mb-4">
+        <MudItem xs="6" md="3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Buy signals</MudText>
+                <MudText Typo="Typo.h5" Color="Color.Success">@_buys.Count</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Sell signals</MudText>
+                <MudText Typo="Typo.h5" Color="Color.Error">@_sells.Count</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Avg confidence</MudText>
+                <MudText Typo="Typo.h5">@_avgConfidence.ToString("P0")</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Active tickers</MudText>
+                <MudText Typo="Typo.h5">@_activeTickerCount</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" />
+                    <MudText Typo="Typo.subtitle1">Latest buys</MudText>
+                </MudStack>
+                @if (_buys.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-4">No buy signals in the latest run.</MudText>
+                }
+                else
+                {
+                    <MudTable Items="_buys" Hover="true" Dense="true" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Ticker</MudTh>
+                            <MudTh>Regime</MudTh>
+                            <MudTh>Confidence</MudTh>
+                            <MudTh>Close</MudTh>
+                            <MudTh>Stop loss</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.tickerSymbol</MudText></MudTd>
+                            <MudTd DataLabel="Regime">
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@(context.regime == "Trending" ? Color.Primary : Color.Default)"
+                                         Variant="@(context.regime == "Trending" ? Variant.Filled : Variant.Outlined)">
+                                    @context.regime
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Confidence">
+                                <MudProgressLinear Color="Color.Success" Value="@((double)context.confidence * 100)" Class="my-1" Style="width:80px;" />
+                            </MudTd>
+                            <MudTd DataLabel="Close">@context.close.ToString("C")</MudTd>
+                            <MudTd DataLabel="Stop loss">@context.stopLossPrice.ToString("C")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingDown" Color="Color.Error" />
+                    <MudText Typo="Typo.subtitle1">Latest sells</MudText>
+                </MudStack>
+                @if (_sells.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-4">No sell signals in the latest run.</MudText>
+                }
+                else
+                {
+                    <MudTable Items="_sells" Hover="true" Dense="true" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Ticker</MudTh>
+                            <MudTh>Regime</MudTh>
+                            <MudTh>Confidence</MudTh>
+                            <MudTh>Close</MudTh>
+                            <MudTh>Stop loss</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.tickerSymbol</MudText></MudTd>
+                            <MudTd DataLabel="Regime">
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@(context.regime == "Trending" ? Color.Primary : Color.Default)"
+                                         Variant="@(context.regime == "Trending" ? Variant.Filled : Variant.Outlined)">
+                                    @context.regime
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Confidence">
+                                <MudProgressLinear Color="Color.Error" Value="@((double)context.confidence * 100)" Class="my-1" Style="width:80px;" />
+                            </MudTd>
+                            <MudTd DataLabel="Close">@context.close.ToString("C")</MudTd>
+                            <MudTd DataLabel="Stop loss">@context.stopLossPrice.ToString("C")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private List<TradeSignalPointPoco> _buys = [];
+    private List<TradeSignalPointPoco> _sells = [];
+    private int _activeTickerCount;
+    private decimal _avgConfidence;
+    private bool _loading = true;
+    private bool _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = HttpClientFactory.CreateClient("InvestmentApi");
+
+        try
+        {
+            var buysTask = client.GetFromJsonAsync<List<TradeSignalPointPoco>>("api/TradeSignalPoint/LatestBuys");
+            var sellsTask = client.GetFromJsonAsync<List<TradeSignalPointPoco>>("api/TradeSignalPoint/LatestSells");
+            await Task.WhenAll(buysTask, sellsTask);
+
+            _buys = buysTask.Result ?? [];
+            _sells = sellsTask.Result ?? [];
+
+            var allSignals = _buys.Concat(_sells).ToList();
+            _avgConfidence = allSignals.Count > 0 ? allSignals.Average(s => s.confidence) : 0m;
+            _activeTickerCount = allSignals.Select(s => s.tickerSymbol).Distinct().Count();
+        }
+        catch (HttpRequestException)
+        {
+            _loadError = true;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

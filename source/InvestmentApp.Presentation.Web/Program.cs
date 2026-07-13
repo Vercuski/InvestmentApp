@@ -10,6 +10,11 @@ builder.AddApplicationRegistration();
 builder.AddPersistenceRegistrations();
 builder.AddInfrastructureRegistration();
 
+builder.Services.AddHttpClient("InvestmentApi", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+});
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
