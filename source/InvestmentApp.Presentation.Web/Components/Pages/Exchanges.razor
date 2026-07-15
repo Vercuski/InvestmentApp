@@ -1,0 +1,101 @@
+@page "/exchanges"
+@using InvestmentApp.Domain.Entities
+@inject IHttpClientFactory HttpClientFactory
+@inject ISnackbar Snackbar
+
+<PageTitle>Exchanges</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Exchanges</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="ma-4" />
+}
+else if (_loadError)
+{
+    <MudAlert Severity="Severity.Error" Class="ma-4">
+        Couldn't reach the Investment API at the configured base URL. Check that it's running and reachable.
+    </MudAlert>
+}
+else
+{
+    <MudPaper Class="pa-4 mb-4" Elevation="1">
+        <MudTable Items="_exchanges" Hover="true" Dense="true" Elevation="0">
+            <HeaderContent>
+                <MudTh>Exchange</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh>Active</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
+                <MudTd DataLabel="Description">@context.ExchangeDescription</MudTd>
+                <MudTd DataLabel="Active">
+                    <MudCheckBox T="bool" @bind-Value="context.Active" Color="Color.Primary" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveChangesAsync" Disabled="_saving">
+        Update exchanges
+    </MudButton>
+}
+
+@code {
+    private List<ExchangePoint> _exchanges = [];
+    private bool _loading = true;
+    private bool _loadError;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadExchangesAsync();
+    }
+
+    private async Task LoadExchangesAsync()
+    {
+        _loading = true;
+        _loadError = false;
+        StateHasChanged();
+
+        var client = HttpClientFactory.CreateClient("InvestmentApi");
+
+        try
+        {
+            _exchanges = await client.GetFromJsonAsync<List<ExchangePoint>>("api/Exchange") ?? [];
+        }
+        catch (HttpRequestException)
+        {
+            _loadError = true;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        _saving = true;
+        StateHasChanged();
+
+        var client = HttpClientFactory.CreateClient("InvestmentApi");
+
+        try
+        {
+            var response = await client.PutAsJsonAsync("api/Exchange", _exchanges);
+            Snackbar.Add(
+                response.IsSuccessStatusCode ? "Exchanges updated." : "Failed to update exchanges.",
+                response.IsSuccessStatusCode ? Severity.Success : Severity.Error);
+        }
+        catch (HttpRequestException)
+        {
+            Snackbar.Add("Couldn't reach the Investment API.", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+            StateHasChanged();
+        }
+    }
+}

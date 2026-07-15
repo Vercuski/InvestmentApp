@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record AdxPoint : RecordEntity
 {
-    public string? TickerSymbol{ get; set; }
+    public string? TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal Adx { get; set; }
     public decimal PlusDi { get; set; }

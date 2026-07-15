@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record MovingAverageCrossoverPoint : RecordEntity
 {
-    public string?TickerSymbol { get; set; }
+    public string? TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal FastAverage { get; set; }
     public decimal SlowAverage { get; set; }

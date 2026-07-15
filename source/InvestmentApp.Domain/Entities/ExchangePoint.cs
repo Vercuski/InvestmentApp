@@ -1,5 +1,4 @@
 using InvestmentApp.Domain.Abstractions;
-using InvestmentApp.Domain.Enums;
 
 namespace InvestmentApp.Domain.Entities;
 
@@ -9,7 +8,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record ExchangePoint : RecordEntity
 {
-    public string? ExchangeSymbol{ get; set; }
+    public string? ExchangeSymbol { get; set; }
     public string? ExchangeDescription { get; set; }
     public bool Active { get; set; }
 
