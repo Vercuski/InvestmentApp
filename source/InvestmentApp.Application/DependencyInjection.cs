@@ -58,6 +58,7 @@ public static class DependencyInjection
         builder.Services.Configure<SwaggerOptions>(GetSection<SwaggerOptions>(builder.Configuration));
         builder.Services.Configure<ConnectionStringOptions>(GetSection<ConnectionStringOptions>(builder.Configuration));
         builder.Services.Configure<LogOptions>(GetSection<LogOptions>(builder.Configuration));
+        builder.Services.Configure<EodDataOptions>(GetSection<EodDataOptions>(builder.Configuration));
         return builder;
     }
 

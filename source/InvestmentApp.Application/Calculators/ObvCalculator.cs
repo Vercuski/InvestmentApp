@@ -119,7 +119,7 @@ public sealed class ObvCalculator
             }
             previousDifference = difference;
 
-            points.Add(new ObvPoint(bars[i].TickerId, bars[i].Date, obv[i], signalLine, trend));
+            points.Add(new ObvPoint(bars[i].TickerSymbol, bars[i].Date, obv[i], signalLine, trend));
         }
 
         return points;

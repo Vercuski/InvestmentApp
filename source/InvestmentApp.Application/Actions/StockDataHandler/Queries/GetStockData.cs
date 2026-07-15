@@ -11,10 +11,10 @@ internal sealed class GetStockHandler(IDbConnectionFactory dbConnectionFactory) 
         GetStockRequest request,
         CancellationToken cancellationToken)
     {
-        var readConnection = dbConnectionFactory.CreateReadConnection();
+        using var readConnection = dbConnectionFactory.CreateReadConnection();
         List<StockData>? response = [];
         //[.. dbContext.Stock.AsNoTracking()
-        //.Where(x => x.TickerId == request.Ticker.TickerId)
+        //.Where(x => x.tickerSymbol == request.Ticker.tickerSymbol)
         //.OrderBy(x => x.Date)];
 
         if (response is null)

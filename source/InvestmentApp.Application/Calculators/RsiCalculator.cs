@@ -121,7 +121,7 @@ public sealed class RsiCalculator
 
         var points = new List<RsiPoint>(prices.Count - Period)
         {
-            BuildPoint(bars[Period].TickerId,  bars[Period].Date, averageGain, averageLoss)
+            BuildPoint(bars[Period].TickerSymbol,  bars[Period].Date, averageGain, averageLoss)
         };
 
         for (int i = Period; i < gains.Length; i++)
@@ -132,13 +132,13 @@ public sealed class RsiCalculator
             averageLoss = (averageLoss * (Period - 1) + losses[i]) / Period;
 
             int barIndex = i + 1;
-            points.Add(BuildPoint(bars[barIndex].TickerId, bars[barIndex].Date, averageGain, averageLoss));
+            points.Add(BuildPoint(bars[barIndex].TickerSymbol, bars[barIndex].Date, averageGain, averageLoss));
         }
 
         return points;
     }
 
-    private RsiPoint BuildPoint(int tickerId, DateTime priceDate, decimal averageGain, decimal averageLoss)
+    private RsiPoint BuildPoint(string? tickerSymbol, DateTime priceDate, decimal averageGain, decimal averageLoss)
     {
         decimal rsi;
         if (averageLoss == 0m)
@@ -163,6 +163,6 @@ public sealed class RsiCalculator
             zone = RsiZone.Oversold;
         }
 
-        return new RsiPoint(tickerId, priceDate, rsi, zone);
+        return new RsiPoint(tickerSymbol, priceDate, rsi, zone);
     }
 }

@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record ObvPoint : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string? TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal Value { get; set; }
     public decimal SignalLine { get; set; }
@@ -17,9 +17,9 @@ public sealed record ObvPoint : RecordEntity
 
     public ObvPoint() { }
 
-    public ObvPoint(int tickerId, DateTime priceDate, decimal value, decimal signalLine, ObvTrend trend)
+    public ObvPoint(string? tickerSymbol, DateTime priceDate, decimal value, decimal signalLine, ObvTrend trend)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         PriceDate = priceDate;
         Value = value;
         SignalLine = signalLine;

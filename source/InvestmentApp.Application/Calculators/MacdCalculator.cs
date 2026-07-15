@@ -130,7 +130,7 @@ public sealed class MacdCalculator
             previousHistogram = histogram;
 
             int barIndex = macdOffset + j;
-            points.Add(new MacdPoint(bars[barIndex].TickerId, bars[barIndex].Date, macd, signal, histogram, crossover));
+            points.Add(new MacdPoint(bars[barIndex].TickerSymbol, bars[barIndex].Date, macd, signal, histogram, crossover));
         }
 
         return points;

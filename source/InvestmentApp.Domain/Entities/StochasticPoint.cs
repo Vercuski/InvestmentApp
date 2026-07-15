@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record StochasticPoint : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string? TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal PercentK { get; set; }
     public decimal PercentD { get; set; }
@@ -19,14 +19,14 @@ public sealed record StochasticPoint : RecordEntity
     public StochasticPoint() { }
 
     public StochasticPoint(
-        int tickerId,
+        string? tickerSymbol,
         DateTime priceDate,
         decimal percentK,
         decimal percentD,
         StochasticZone zone,
         StochasticCrossover crossover)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         PriceDate = priceDate;
         PercentK = percentK;
         PercentD = percentD;

@@ -123,7 +123,7 @@ public sealed class CciCalculator
                 zone = CciZone.Oversold;
             }
 
-            points.Add(new CciPoint(bars[i].TickerId, bars[i].Date, cci, zone));
+            points.Add(new CciPoint(bars[i].TickerSymbol, bars[i].Date, cci, zone));
         }
 
         return points;

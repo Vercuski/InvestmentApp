@@ -118,7 +118,7 @@ public sealed class BollingerBandsCalculator
                 signal = BollingerBandSignal.BelowLowerBand;
             }
 
-            points.Add(new BollingerBandsPoint(bars[i].TickerId, bars[i].Date, price, middleBand, upperBand, lowerBand, signal));
+            points.Add(new BollingerBandsPoint(bars[i].TickerSymbol, bars[i].Date, price, middleBand, upperBand, lowerBand, signal));
         }
 
         return points;

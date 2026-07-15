@@ -11,7 +11,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record TradeSignalPoint : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string? TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public TradeAction Action { get; set; }
     public MarketRegime Regime { get; set; }
@@ -35,7 +35,7 @@ public sealed record TradeSignalPoint : RecordEntity
     public TradeSignalPoint() { }
 
     public TradeSignalPoint(
-        int tickerId,
+        string? tickerSymbol,
         DateTime priceDate,
         TradeAction action,
         MarketRegime regime,
@@ -43,7 +43,7 @@ public sealed record TradeSignalPoint : RecordEntity
         decimal atrValue,
         decimal? stopLossPrice)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         PriceDate = priceDate;
         Action = action;
         Regime = regime;

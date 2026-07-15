@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record KeltnerChannelsPoint : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string? TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal Price { get; set; }
     public decimal MiddleLine { get; set; }
@@ -20,7 +20,7 @@ public sealed record KeltnerChannelsPoint : RecordEntity
     public KeltnerChannelsPoint() { }
 
     public KeltnerChannelsPoint(
-        int tickerId,
+        string? tickerSymbol,
         DateTime priceDate,
         decimal price,
         decimal middleLine,
@@ -28,7 +28,7 @@ public sealed record KeltnerChannelsPoint : RecordEntity
         decimal lowerBand,
         KeltnerChannelSignal signal)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         PriceDate = priceDate;
         Price = price;
         MiddleLine = middleLine;

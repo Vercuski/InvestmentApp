@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record MacdPoint : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string? TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal Macd { get; set; }
     public decimal Signal { get; set; }
@@ -17,9 +17,9 @@ public sealed record MacdPoint : RecordEntity
     public MacdCrossover Crossover { get; set; }
 
     public MacdPoint() { }
-    public MacdPoint(int tickerId, DateTime priceDate, decimal macd, decimal signal, decimal histogram, MacdCrossover crossover)
+    public MacdPoint(string? tickerSymbol, DateTime priceDate, decimal macd, decimal signal, decimal histogram, MacdCrossover crossover)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         PriceDate = priceDate;
         Macd = macd;
         Signal = signal;

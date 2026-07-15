@@ -14,15 +14,15 @@ namespace InvestmentApp.Domain.Entities;
 /// </remarks>
 public sealed record AtrPoint : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string? TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal Value { get; set; }
 
     public AtrPoint() { }
 
-    public AtrPoint(int tickerId, DateTime priceDate, decimal value)
+    public AtrPoint(string? tickerSymbol, DateTime priceDate, decimal value)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         PriceDate = priceDate;
         Value = value;
     }

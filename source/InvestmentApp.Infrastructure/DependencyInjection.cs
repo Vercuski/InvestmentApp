@@ -1,3 +1,4 @@
+using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.Repositories;
 using InvestmentApp.Application.Services;
 using InvestmentApp.Infrastructure.HealthChecks;
@@ -38,6 +39,7 @@ public static class DependencyInjection
     {
         builder.Services.AddScoped<IStockDataRepository, StockDataRepository>();
         builder.Services.AddScoped<ITradeSignalPointRepository, TradeSignalPointRepository>();
+        builder.Services.AddScoped<ITickerRepository, TickerRepository>();
         return builder;
     }
 
@@ -50,6 +52,7 @@ public static class DependencyInjection
         {
             client.BaseAddress = new Uri("https://localhost:8080/");
         });
+        builder.Services.AddScoped<IEodDataScraperService, EodDataScraperService>();
         return builder;
     }
 

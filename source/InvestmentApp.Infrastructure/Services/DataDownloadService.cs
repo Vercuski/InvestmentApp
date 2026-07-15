@@ -145,7 +145,7 @@ public class DataDownloadService(HttpClient httpClient) : IDataDownloadService
         List<StockData> StockList = [];
         for (int i = 0; i < minCount; i++)
         {
-            var stock = new StockData(ticker.TickerId,
+            var stock = new StockData(ticker.TickerSymbol,
                                                     openDataSet[i],
                                                     highDataSet[i],
                                                     lowDataSet[i],

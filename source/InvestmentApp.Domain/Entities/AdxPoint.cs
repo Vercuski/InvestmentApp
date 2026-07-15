@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record AdxPoint : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string? TickerSymbol{ get; set; }
     public DateTime PriceDate { get; set; }
     public decimal Adx { get; set; }
     public decimal PlusDi { get; set; }
@@ -18,9 +18,9 @@ public sealed record AdxPoint : RecordEntity
 
     public AdxPoint() { }
 
-    public AdxPoint(int tickerId, DateTime priceDate, decimal adx, decimal plusDi, decimal minusDi, AdxTrendStrength trendStrength)
+    public AdxPoint(string? tickerSymbol, DateTime priceDate, decimal adx, decimal plusDi, decimal minusDi, AdxTrendStrength trendStrength)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         PriceDate = priceDate;
         Adx = adx;
         PlusDi = plusDi;

@@ -3,12 +3,7 @@ using InvestmentApp.Application.Abstractions.Repositories;
 
 namespace InvestmentApp.Infrastructure.Repositories;
 
-public class StockDataRepository : IStockDataRepository
+public class StockDataRepository(IDbConnectionFactory connectionFactory) : IStockDataRepository
 {
-    private IDbConnectionFactory _connectionFactory;
-
-    public StockDataRepository(IDbConnectionFactory connectionFactory)
-    {
-        _connectionFactory = connectionFactory;
-    }
+    private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
 }

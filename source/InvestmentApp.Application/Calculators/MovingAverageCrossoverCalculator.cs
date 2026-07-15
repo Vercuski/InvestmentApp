@@ -106,7 +106,7 @@ public sealed class MovingAverageCrossoverCalculator
             }
             previousDifference = difference;
 
-            points.Add(new MovingAverageCrossoverPoint(bars[i].TickerId, bars[i].Date, fastAverage, slowAverage, difference, crossover));
+            points.Add(new MovingAverageCrossoverPoint(bars[i].TickerSymbol, bars[i].Date, fastAverage, slowAverage, difference, crossover));
         }
 
         return points;

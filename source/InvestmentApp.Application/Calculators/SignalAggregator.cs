@@ -123,7 +123,7 @@ public sealed class SignalAggregator
                     : closePrice + atrDistance;
             }
 
-            points.Add(new TradeSignalPoint(macd.TickerId, date, action, regime, confidence, atr.Value, stopLossPrice));
+            points.Add(new TradeSignalPoint(macd.TickerSymbol, date, action, regime, confidence, atr.Value, stopLossPrice));
         }
 
         return points;

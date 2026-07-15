@@ -108,7 +108,7 @@ public sealed class KeltnerChannelsCalculator
                 signal = KeltnerChannelSignal.BelowLowerBand;
             }
 
-            points.Add(new KeltnerChannelsPoint(bars[i].TickerId, bars[i].Date, price, middle, upperBand, lowerBand, signal));
+            points.Add(new KeltnerChannelsPoint(bars[i].TickerSymbol, bars[i].Date, price, middle, upperBand, lowerBand, signal));
         }
 
         return points;

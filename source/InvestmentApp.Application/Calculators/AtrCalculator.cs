@@ -89,7 +89,7 @@ public sealed class AtrCalculator
 
         var points = new List<AtrPoint>(bars.Count - Period + 1)
         {
-            new(bars[Period - 1].TickerId, bars[Period - 1].Date, averageTrueRange)
+            new(bars[Period - 1].TickerSymbol, bars[Period - 1].Date, averageTrueRange)
         };
 
         for (int i = Period; i < bars.Count; i++)
@@ -97,7 +97,7 @@ public sealed class AtrCalculator
             // Wilder's smoothing: weight the running average by (Period - 1) parts
             // history to 1 part the newest true range value.
             averageTrueRange = (averageTrueRange * (Period - 1) + trueRanges[i]) / Period;
-            points.Add(new AtrPoint(bars[i].TickerId, bars[i].Date, averageTrueRange));
+            points.Add(new AtrPoint(bars[i].TickerSymbol, bars[i].Date, averageTrueRange));
         }
 
         return points;

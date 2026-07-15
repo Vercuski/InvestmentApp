@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InvestmentApp.Infrastructure.Repositories;
 
-public class TradeSignalPointRepository : ITradeSignalPointRepository
+public class TradeSignalPointRepository(IDbConnectionFactory connectionFactory) : ITradeSignalPointRepository
 {
-	private const string GetLatesTradeSignalPointsSQL = @"SELECT
+    private const string GetLatesTradeSignalPointsSQL = @"SELECT
 	T.tickerSymbol,
 	SD.[close],
 	TSP.Action,
@@ -20,10 +20,10 @@ public class TradeSignalPointRepository : ITradeSignalPointRepository
 FROM
 	TradeSignalPoint TSP
 	INNER JOIN stockData SD
-		ON TSP.tickerId = SD.tickerId
+		ON TSP.tickerSymbol = SD.tickerSymbol
 		AND TSP.priceDate = SD.[date]
 	INNER JOIN ticker T
-		ON T.tickerId = TSP.tickerId
+		ON T.tickerSymbol = TSP.tickerSymbol
 WHERE
 	[action] <> 'Hold'
 	AND confidence >= @confidenceLevel
@@ -34,17 +34,12 @@ ORDER by
 	T.tickerSymbol,
 	SD.[Date]";
 
-	private IDbConnectionFactory _connectionFactory;
+    private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
 
-	public TradeSignalPointRepository(IDbConnectionFactory connectionFactory)
-	{
-		_connectionFactory = connectionFactory;
-	}
-
-	public async Task<IEnumerable<TradeSignalPointPoco>> GetLatestBuyTradeSignalPointsAsync([FromQuery] int confidenceLevel = 100)
+    public async Task<IEnumerable<TradeSignalPointPoco>> GetLatestBuyTradeSignalPointsAsync([FromQuery] int confidenceLevel = 100)
     {
         using var connection = _connectionFactory.CreateReadConnection();
-        return await connection.QueryAsync<TradeSignalPointPoco>(GetLatesTradeSignalPointsSQL, new { actionType = "buy", confidenceLevel = confidenceLevel/100.0 } );
+        return await connection.QueryAsync<TradeSignalPointPoco>(GetLatesTradeSignalPointsSQL, new { actionType = "buy", confidenceLevel = confidenceLevel / 100.0 });
     }
 
     public async Task<IEnumerable<TradeSignalPointPoco>> GetLatestSellTradeSignalPointsAsync([FromQuery] int confidenceLevel = 100)

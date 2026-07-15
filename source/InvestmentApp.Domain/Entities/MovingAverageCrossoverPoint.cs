@@ -9,7 +9,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record MovingAverageCrossoverPoint : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string?TickerSymbol { get; set; }
     public DateTime PriceDate { get; set; }
     public decimal FastAverage { get; set; }
     public decimal SlowAverage { get; set; }
@@ -19,14 +19,14 @@ public sealed record MovingAverageCrossoverPoint : RecordEntity
     public MovingAverageCrossoverPoint() { }
 
     public MovingAverageCrossoverPoint(
-        int tickerId,
+        string? tickerSymbol,
         DateTime priceDate,
         decimal fastAverage,
         decimal slowAverage,
         decimal difference,
         MovingAverageCrossover crossover)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         PriceDate = priceDate;
         FastAverage = fastAverage;
         SlowAverage = slowAverage;

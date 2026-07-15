@@ -140,7 +140,7 @@ public sealed class ChaikinMoneyFlowCalculator
                 zone = ChaikinMoneyFlowZone.Bearish;
             }
 
-            points.Add(new ChaikinMoneyFlowPoint(bars[i].TickerId, bars[i].Date, cmf, zone));
+            points.Add(new ChaikinMoneyFlowPoint(bars[i].TickerSymbol, bars[i].Date, cmf, zone));
         }
 
         return points;

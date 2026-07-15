@@ -169,7 +169,7 @@ public sealed class StochasticCalculator
             }
 
             int barIndex = i + Period - 1;
-            points.Add(new StochasticPoint(bars[barIndex].TickerId, bars[barIndex].Date, currentK, percentD, zone, crossover));
+            points.Add(new StochasticPoint(bars[barIndex].TickerSymbol, bars[barIndex].Date, currentK, percentD, zone, crossover));
         }
 
         return points;

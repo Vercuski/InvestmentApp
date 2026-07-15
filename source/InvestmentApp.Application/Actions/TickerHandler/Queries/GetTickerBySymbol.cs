@@ -12,7 +12,8 @@ internal sealed class GetTickerBySymbolHandler(IDbConnectionFactory dbConnection
         GetTickerBySymbolRequest request,
         CancellationToken cancellationToken)
     {
-        var dbConnection = dbConnectionFactory.CreateReadConnection();
+        using var dbConnection = dbConnectionFactory.CreateReadConnection();
+
         Ticker? response = null;
         //dbContext.Ticker.AsNoTracking()
         //.Where(x => x.TickerSymbol == request.TickerSymbol)

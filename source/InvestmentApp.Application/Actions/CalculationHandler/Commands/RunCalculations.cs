@@ -34,11 +34,11 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
         {
             using IDbConnection dbConnection = dbConnectionFactory.CreateWriteConnection();
             dbConnection.TruncateTable<TradeSignalPoint>();
-            var tickerList = dbConnection.Query<Ticker>("SELECT tickerId, tickerSymbol FROM Ticker ORDER BY tickerSymbol").ToList();
+            var tickerList = dbConnection.Query<Ticker>("SELECT tickerSymbol FROM Ticker WHERE exchangeSymbol IN (SELECT exchangeSymbol FROM Exchanges WHERE active = 1) ORDER BY tickerSymbol").ToList();
             List<TradeSignalPoint> signalAggregatorCalculation = [];
             foreach (Ticker ticker in tickerList)
             {
-                var stockDataList = dbConnection.Query<StockData>($"SELECT [tickerId], [open], [high], [low], [close], [volume], [date] FROM StockData WHERE [tickerId] = {ticker.TickerId} ORDER BY [date]").ToList();
+                var stockDataList = dbConnection.Query<StockData>($"SELECT [tickerSymbol], [open], [high], [low], [close], [volume], [date] FROM StockData WHERE [tickerSymbol] = '{ticker.TickerSymbol}' ORDER BY [date]").ToList();
                 if (stockDataList.Count < 50)
                 {
                     Console.WriteLine($"No stock data found for ticker: {ticker.TickerSymbol}");

@@ -153,7 +153,7 @@ public sealed class AdxCalculator
     private AdxPoint BuildPoint(StockData bar, decimal adx, decimal plusDi, decimal minusDi)
     {
         var strength = adx >= TrendThreshold ? AdxTrendStrength.Strong : AdxTrendStrength.Weak;
-        return new AdxPoint(bar.TickerId, bar.Date, adx, plusDi, minusDi, strength);
+        return new AdxPoint(bar.TickerSymbol, bar.Date, adx, plusDi, minusDi, strength);
     }
 
     private static decimal Average(IReadOnlyList<decimal> values, int start, int count)

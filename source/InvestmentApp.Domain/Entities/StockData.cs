@@ -8,7 +8,7 @@ namespace InvestmentApp.Domain.Entities;
 /// </summary>
 public sealed record StockData : RecordEntity
 {
-    public int TickerId { get; set; }
+    public string? TickerSymbol { get; set; }
     public decimal Open { get; set; }
     public decimal High { get; set; }
     public decimal Low { get; set; }
@@ -22,7 +22,7 @@ public sealed record StockData : RecordEntity
     /// Creates a <see cref="StockData"/> price bar.
     /// </summary>
     public StockData(
-        int tickerId,
+        string? tickerSymbol,
         decimal open,
         decimal high,
         decimal low,
@@ -30,7 +30,7 @@ public sealed record StockData : RecordEntity
         long volume,
         DateTime date)
     {
-        TickerId = tickerId;
+        TickerSymbol = tickerSymbol;
         Open = open;
         High = high;
         Low = low;

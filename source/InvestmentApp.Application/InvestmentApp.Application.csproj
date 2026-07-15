@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <Folder Include="Actions\CalculationHandler\Queries\" />
-    <Folder Include="Actions\TickerHandler\Commands\" />
     <Folder Include="Contracts\Dtos\" />
   </ItemGroup>
 

@@ -75,19 +75,19 @@ else
                             <MudTh>Stop loss</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.tickerSymbol</MudText></MudTd>
+                            <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.TickerSymbol</MudText></MudTd>
                             <MudTd DataLabel="Regime">
                                 <MudChip T="string" Size="Size.Small"
-                                         Color="@(context.regime == "Trending" ? Color.Primary : Color.Default)"
-                                         Variant="@(context.regime == "Trending" ? Variant.Filled : Variant.Outlined)">
-                                    @context.regime
+                                         Color="@(context.Regime == "Trending" ? Color.Primary : Color.Default)"
+                                         Variant="@(context.Regime == "Trending" ? Variant.Filled : Variant.Outlined)">
+                                    @context.Regime
                                 </MudChip>
                             </MudTd>
                             <MudTd DataLabel="Confidence">
-                                <MudProgressLinear Color="Color.Success" Value="@((double)context.confidence * 100)" Class="my-1" Style="width:80px;" />
+                                <MudProgressLinear Color="Color.Success" Value="@((double)context.Confidence * 100)" Class="my-1" Style="width:80px;" />
                             </MudTd>
-                            <MudTd DataLabel="Close">@context.close.ToString("C")</MudTd>
-                            <MudTd DataLabel="Stop loss">@context.stopLossPrice.ToString("C")</MudTd>
+                            <MudTd DataLabel="Close">@context.Close.ToString("C")</MudTd>
+                            <MudTd DataLabel="Stop loss">@context.StopLossPrice.ToString("C")</MudTd>
                         </RowTemplate>
                     </MudTable>
                 }
@@ -115,19 +115,19 @@ else
                             <MudTh>Stop loss</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.tickerSymbol</MudText></MudTd>
+                            <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.TickerSymbol</MudText></MudTd>
                             <MudTd DataLabel="Regime">
                                 <MudChip T="string" Size="Size.Small"
-                                         Color="@(context.regime == "Trending" ? Color.Primary : Color.Default)"
-                                         Variant="@(context.regime == "Trending" ? Variant.Filled : Variant.Outlined)">
-                                    @context.regime
+                                         Color="@(context.Regime == "Trending" ? Color.Primary : Color.Default)"
+                                         Variant="@(context.Regime == "Trending" ? Variant.Filled : Variant.Outlined)">
+                                    @context.Regime
                                 </MudChip>
                             </MudTd>
                             <MudTd DataLabel="Confidence">
-                                <MudProgressLinear Color="Color.Error" Value="@((double)context.confidence * 100)" Class="my-1" Style="width:80px;" />
+                                <MudProgressLinear Color="Color.Error" Value="@((double)context.Confidence * 100)" Class="my-1" Style="width:80px;" />
                             </MudTd>
-                            <MudTd DataLabel="Close">@context.close.ToString("C")</MudTd>
-                            <MudTd DataLabel="Stop loss">@context.stopLossPrice.ToString("C")</MudTd>
+                            <MudTd DataLabel="Close">@context.Close.ToString("C")</MudTd>
+                            <MudTd DataLabel="Stop loss">@context.StopLossPrice.ToString("C")</MudTd>
                         </RowTemplate>
                     </MudTable>
                 }
@@ -168,8 +168,8 @@ else
             _sells = sellsTask.Result ?? [];
 
             var allSignals = _buys.Concat(_sells).ToList();
-            _avgConfidence = allSignals.Count > 0 ? allSignals.Average(s => s.confidence) : 0m;
-            _activeTickerCount = allSignals.Select(s => s.tickerSymbol).Distinct().Count();
+            _avgConfidence = allSignals.Count > 0 ? allSignals.Average(s => s.Confidence) : 0m;
+            _activeTickerCount = allSignals.Select(s => s.TickerSymbol).Distinct().Count();
         }
         catch (HttpRequestException)
         {
