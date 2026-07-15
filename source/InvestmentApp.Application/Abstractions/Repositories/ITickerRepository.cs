@@ -10,6 +10,8 @@ public interface ITickerRepository
     /// </summary>
     Task<IEnumerable<ExchangePoint>> GetExchangeCodesAsync();
 
+    Task<Ticker?> GetTickerBySymbolAsync(string tickerSymbol);
+
     /// <summary>
     /// Truncates the Ticker table and inserts the given tickers in its place.
     /// </summary>

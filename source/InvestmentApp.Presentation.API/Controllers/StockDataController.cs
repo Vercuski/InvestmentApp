@@ -1,10 +1,10 @@
 using InvestmentApp.Application.Actions.StockDataHandler.Commands;
-using InvestmentApp.Application.Actions.StockDataHandler.Queries;
 using InvestmentApp.Application.Actions.TickerHandler.Queries;
 using InvestmentApp.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace InvestmentApp.Presentation.API.Controllers;
 
@@ -17,10 +17,11 @@ public class StockDataController(IMediator mediator) : ControllerBase
     [AllowAnonymous]
     [HttpPost]
     [Route("")]
-    public async Task<ActionResult<List<StockData>>> GetStockDataAsync([FromBody] Ticker ticker)
+    public async Task<ActionResult<List<StockData>>> DownloadSingleStockDataPoint([FromQuery] string TickerSymbol)
     {
-        var result = await mediator.Send(new GetStockRequest(ticker));
-        if (result is null)
+        var ticker = await mediator.Send(new GetTickerBySymbolRequest(TickerSymbol));
+        var result = await mediator.Send(new DownloadSingleStockDataPointRequest(ticker!));
+        if (result is not HttpStatusCode.OK)
         {
             return BadRequest("No Event Found");
         }

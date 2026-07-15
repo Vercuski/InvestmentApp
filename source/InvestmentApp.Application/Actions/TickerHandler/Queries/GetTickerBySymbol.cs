@@ -1,24 +1,19 @@
+using Dapper;
 using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.ConnectionFactory;
+using InvestmentApp.Application.Abstractions.Repositories;
 using InvestmentApp.Domain.Entities;
 
 namespace InvestmentApp.Application.Actions.TickerHandler.Queries;
 
 public sealed record GetTickerBySymbolRequest(string TickerSymbol) : IMediatRQueryRequest<Ticker?>;
-internal sealed class GetTickerBySymbolHandler(IDbConnectionFactory dbConnectionFactory)
+internal sealed class GetTickerBySymbolHandler(ITickerRepository tickerRepository)
     : IMediatRQueryHandler<GetTickerBySymbolRequest, Ticker?>
 {
-    public Task<Ticker?> Handle(
+    public async Task<Ticker?> Handle(
         GetTickerBySymbolRequest request,
         CancellationToken cancellationToken)
     {
-        using var dbConnection = dbConnectionFactory.CreateReadConnection();
-
-        Ticker? response = null;
-        //dbContext.Ticker.AsNoTracking()
-        //.Where(x => x.TickerSymbol == request.TickerSymbol)
-        //.SingleOrDefault();
-
-        return Task.FromResult(response);
+        return await tickerRepository.GetTickerBySymbolAsync(request.TickerSymbol);
     }
 }

@@ -156,7 +156,7 @@ public sealed class AdxCalculator
         return new AdxPoint(bar.TickerSymbol, bar.Date, adx, plusDi, minusDi, strength);
     }
 
-    private static decimal Average(IReadOnlyList<decimal> values, int start, int count)
+    private static decimal Average(decimal[] values, int start, int count)
     {
         decimal sum = 0m;
         for (int i = start; i < start + count; i++)
