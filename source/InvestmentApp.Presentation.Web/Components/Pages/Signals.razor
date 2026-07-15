@@ -68,6 +68,7 @@ else
                 {
                     <MudTable Items="_buys" Hover="true" Dense="true" Elevation="0">
                         <HeaderContent>
+                            <MudTh>Exchange</MudTh>
                             <MudTh>Ticker</MudTh>
                             <MudTh>Regime</MudTh>
                             <MudTh>Confidence</MudTh>
@@ -75,6 +76,7 @@ else
                             <MudTh>Stop loss</MudTh>
                         </HeaderContent>
                         <RowTemplate>
+                            <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
                             <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.TickerSymbol</MudText></MudTd>
                             <MudTd DataLabel="Regime">
                                 <MudChip T="string" Size="Size.Small"
@@ -108,6 +110,7 @@ else
                 {
                     <MudTable Items="_sells" Hover="true" Dense="true" Elevation="0">
                         <HeaderContent>
+                            <MudTh>Exchange</MudTh>
                             <MudTh>Ticker</MudTh>
                             <MudTh>Regime</MudTh>
                             <MudTh>Confidence</MudTh>
@@ -115,6 +118,7 @@ else
                             <MudTh>Stop loss</MudTh>
                         </HeaderContent>
                         <RowTemplate>
+                            <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
                             <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.TickerSymbol</MudText></MudTd>
                             <MudTd DataLabel="Regime">
                                 <MudChip T="string" Size="Size.Small"

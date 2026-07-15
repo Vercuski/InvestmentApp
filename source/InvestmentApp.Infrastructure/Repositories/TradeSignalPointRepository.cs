@@ -10,6 +10,7 @@ public class TradeSignalPointRepository(IDbConnectionFactory connectionFactory) 
 {
     private const string GetLatesTradeSignalPointsSQL = @"SELECT
 	T.tickerSymbol,
+	ExchangeSymbol, 
 	SD.[close],
 	TSP.Action,
 	TSP.confidence,

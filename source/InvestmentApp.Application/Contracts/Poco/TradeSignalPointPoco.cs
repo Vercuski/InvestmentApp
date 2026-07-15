@@ -3,6 +3,7 @@
 public record TradeSignalPointPoco
 {
     public string? TickerSymbol { get; set; }
+    public string? ExchangeSymbol { get; set; }
     public decimal Close { get; set; }
     public string? Action { get; set; }
     public decimal Confidence { get; set; }
