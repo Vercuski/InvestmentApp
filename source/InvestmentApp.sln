@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.7.11919.86 stable
+VisualStudioVersion = 18.7.11919.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvestmentApp.Presentation.Web", "InvestmentApp.Presentation.Web\InvestmentApp.Presentation.Web.csproj", "{BFD27282-943E-4B5C-9C53-1544F19CDDC8}"
 EndProject
@@ -17,6 +17,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{4E5CFCD7-7831-4706-BC66-74342F71C74E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvestmentApp.Presentation.API", "InvestmentApp.Presentation.API\InvestmentApp.Presentation.API.csproj", "{0ADC93B7-0431-4EFD-8C11-EFAFA30BA0DC}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "InvestmentApp.Database", "InvestmentApp.Database\InvestmentApp.Database.sqlproj", "{6730E31A-F32B-4B34-9262-906FDDD9E78A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,6 +54,12 @@ Global
 		{0ADC93B7-0431-4EFD-8C11-EFAFA30BA0DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0ADC93B7-0431-4EFD-8C11-EFAFA30BA0DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0ADC93B7-0431-4EFD-8C11-EFAFA30BA0DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6730E31A-F32B-4B34-9262-906FDDD9E78A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6730E31A-F32B-4B34-9262-906FDDD9E78A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6730E31A-F32B-4B34-9262-906FDDD9E78A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{6730E31A-F32B-4B34-9262-906FDDD9E78A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6730E31A-F32B-4B34-9262-906FDDD9E78A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6730E31A-F32B-4B34-9262-906FDDD9E78A}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
