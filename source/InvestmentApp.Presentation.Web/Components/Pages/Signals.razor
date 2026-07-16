@@ -1,6 +1,10 @@
 @page "/signals"
 @using InvestmentApp.Application.Contracts.Poco
+@using InvestmentApp.Domain.Entities
+@using InvestmentApp.Domain.Enums
 @inject IHttpClientFactory HttpClientFactory
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Signals</PageTitle>
 
@@ -74,6 +78,7 @@ else
                             <MudTh>Confidence</MudTh>
                             <MudTh>Close</MudTh>
                             <MudTh>Stop loss</MudTh>
+                            <MudTh>Position</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
@@ -90,6 +95,14 @@ else
                             </MudTd>
                             <MudTd DataLabel="Close">@context.Close.ToString("C")</MudTd>
                             <MudTd DataLabel="Stop loss">@context.StopLossPrice.ToString("C")</MudTd>
+                            <MudTd DataLabel="Position">
+                                @if (context.TickerSymbol is not null && !_openPositionsByTicker.TryGetValue(context.TickerSymbol, out var openPosition))
+                                {
+                                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Success" OnClick="@(() => OpenBuyDialogAsync(context))">
+                                        Buy
+                                    </MudButton>
+                                }
+                            </MudTd>
                         </RowTemplate>
                     </MudTable>
                 }
@@ -116,6 +129,7 @@ else
                             <MudTh>Confidence</MudTh>
                             <MudTh>Close</MudTh>
                             <MudTh>Stop loss</MudTh>
+                            <MudTh>Position</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
@@ -132,6 +146,14 @@ else
                             </MudTd>
                             <MudTd DataLabel="Close">@context.Close.ToString("C")</MudTd>
                             <MudTd DataLabel="Stop loss">@context.StopLossPrice.ToString("C")</MudTd>
+                            <MudTd DataLabel="Position">
+                                @if (context.TickerSymbol is not null && _openPositionsByTicker.TryGetValue(context.TickerSymbol, out var openPosition))
+                                {
+                                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => SellPositionAsync(openPosition, context))">
+                                        Sell
+                                    </MudButton>
+                                }
+                            </MudTd>
                         </RowTemplate>
                     </MudTable>
                 }
@@ -143,6 +165,7 @@ else
 @code {
     private List<TradeSignalPointPoco> _buys = [];
     private List<TradeSignalPointPoco> _sells = [];
+    private Dictionary<string, PositionPoint> _openPositionsByTicker = new(StringComparer.OrdinalIgnoreCase);
     private int _activeTickerCount;
     private decimal _avgConfidence;
     private int _confidenceLevel = 100;
@@ -166,10 +189,12 @@ else
         {
             var buysTask = client.GetFromJsonAsync<List<TradeSignalPointPoco>>($"api/TradeSignalPoint/LatestBuys?confidenceLevel={_confidenceLevel}");
             var sellsTask = client.GetFromJsonAsync<List<TradeSignalPointPoco>>($"api/TradeSignalPoint/LatestSells?confidenceLevel={_confidenceLevel}");
-            await Task.WhenAll(buysTask, sellsTask);
+            var positionsTask = client.GetFromJsonAsync<List<PositionPoint>>("api/Positions");
+            await Task.WhenAll(buysTask, sellsTask, positionsTask);
 
             _buys = buysTask.Result ?? [];
             _sells = sellsTask.Result ?? [];
+            SetOpenPositions(positionsTask.Result ?? []);
 
             var allSignals = _buys.Concat(_sells).ToList();
             _avgConfidence = allSignals.Count > 0 ? allSignals.Average(s => s.Confidence) : 0m;
@@ -182,6 +207,91 @@ else
         finally
         {
             _loading = false;
+        }
+    }
+
+    private void SetOpenPositions(List<PositionPoint> positions)
+    {
+        _openPositionsByTicker = positions
+            .Where(p => p.SellDate is null && p.TickerSymbol is not null)
+            .GroupBy(p => p.TickerSymbol!, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+    }
+
+    private async Task OpenBuyDialogAsync(TradeSignalPointPoco signal)
+    {
+        var regime = Enum.TryParse<MarketRegime>(signal.Regime, true, out var parsedRegime)
+            ? parsedRegime
+            : MarketRegime.Ranging;
+
+        var newPosition = new PositionPoint
+        {
+            TickerSymbol = signal.TickerSymbol,
+            ExchangeSymbol = signal.ExchangeSymbol,
+            Regime = regime,
+            Confidence = signal.Confidence,
+            PurchasePrice = signal.Close,
+            PurchaseDate = signal.Date == default ? DateTime.Today : signal.Date
+        };
+
+        var parameters = new DialogParameters<PositionEditDialog>
+        {
+            { x => x.Position, newPosition }
+        };
+        var dialog = await DialogService.ShowAsync<PositionEditDialog>("Buy position", parameters);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not PositionPoint position)
+        {
+            return;
+        }
+
+        await SavePositionAsync(position, $"Bought {position.TickerSymbol}.");
+    }
+
+    private async Task SellPositionAsync(PositionPoint openPosition, TradeSignalPointPoco signal)
+    {
+        var sellDate = signal.Date == default ? DateTime.Today : signal.Date;
+
+        bool? confirmed = await DialogService.ShowMessageBoxAsync(
+            "Sell position",
+            $"Sell {openPosition.NumberOfShares:N4} shares of {openPosition.TickerSymbol} at {signal.Close:C}?",
+            yesText: "Sell",
+            cancelText: "Cancel");
+
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        var closedPosition = openPosition with
+        {
+            SellPrice = signal.Close,
+            SellDate = sellDate
+        };
+
+        await SavePositionAsync(closedPosition, $"Sold {closedPosition.TickerSymbol}.");
+    }
+
+    private async Task SavePositionAsync(PositionPoint position, string successMessage)
+    {
+        var client = HttpClientFactory.CreateClient("InvestmentApi");
+
+        try
+        {
+            var response = await client.PutAsJsonAsync("api/Positions", position);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add(successMessage, Severity.Success);
+                await LoadSignalsAsync();
+            }
+            else
+            {
+                Snackbar.Add("Failed to save position.", Severity.Error);
+            }
+        }
+        catch (HttpRequestException)
+        {
+            Snackbar.Add("Couldn't reach the Investment API.", Severity.Error);
         }
     }
 }
