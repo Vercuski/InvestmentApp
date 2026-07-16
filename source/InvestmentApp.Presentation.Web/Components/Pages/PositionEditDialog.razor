@@ -1,0 +1,112 @@
+@using InvestmentApp.Domain.Entities
+@using InvestmentApp.Domain.Enums
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_isNew ? "Add position" : "Edit position")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_editModel">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_editModel.TickerSymbol" Label="Ticker symbol" Required="true" RequiredError="Ticker symbol is required" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_editModel.ExchangeSymbol" Label="Exchange symbol" Required="true" RequiredError="Exchange symbol is required" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="MarketRegime" @bind-Value="_editModel.Regime" Label="Regime">
+                        @foreach (var regime in Enum.GetValues<MarketRegime>())
+                        {
+                            <MudSelectItem T="MarketRegime" Value="@regime">@regime</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" @bind-Value="_confidencePercent" Label="Confidence" Min="0m" Max="100m" Adornment="Adornment.End" AdornmentText="%" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" @bind-Value="_editModel.PurchasePrice" Label="Purchase price" Min="0m" Adornment="Adornment.Start" AdornmentText="$" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" @bind-Value="_editModel.NumberOfShares" Label="Number of shares" Min="0m" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_purchaseDate" Label="Purchase date" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal?" @bind-Value="_editModel.SellPrice" Label="Sell price (if closed)" Min="0m" Adornment="Adornment.Start" AdornmentText="$" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_sellDate" Label="Sell date (if closed)" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    /// <summary>Null (or a position with <c>PositionId == 0</c>) to add a new position.</summary>
+    [Parameter]
+    public PositionPoint? Position { get; set; }
+
+    private MudForm _form = default!;
+    private PositionPoint _editModel = new();
+    private bool _isNew;
+    private decimal _confidencePercent;
+    private DateTime? _purchaseDate;
+    private DateTime? _sellDate;
+
+    protected override void OnInitialized()
+    {
+        if (Position is not null)
+        {
+            _isNew = Position.PositionId == 0;
+            _editModel = new PositionPoint(
+                Position.PositionId,
+                Position.TickerSymbol,
+                Position.ExchangeSymbol,
+                Position.Regime,
+                Position.Confidence,
+                Position.PurchasePrice,
+                Position.NumberOfShares,
+                Position.PurchaseDate,
+                Position.SellPrice,
+                Position.SellDate);
+            _confidencePercent = Position.Confidence * 100m;
+            _purchaseDate = Position.PurchaseDate == default ? DateTime.Today : Position.PurchaseDate;
+            _sellDate = Position.SellDate;
+        }
+        else
+        {
+            _isNew = true;
+            _editModel = new PositionPoint { PurchaseDate = DateTime.Today };
+            _purchaseDate = DateTime.Today;
+        }
+    }
+
+    private async Task Submit()
+    {
+        await _form.ValidateAsync();
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _editModel.Confidence = _confidencePercent / 100m;
+        _editModel.PurchaseDate = _purchaseDate ?? DateTime.Today;
+        _editModel.SellDate = _sellDate;
+
+        MudDialog.Close(DialogResult.Ok(_editModel));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

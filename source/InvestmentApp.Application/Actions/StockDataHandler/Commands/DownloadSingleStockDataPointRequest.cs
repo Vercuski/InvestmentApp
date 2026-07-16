@@ -6,7 +6,6 @@ using InvestmentApp.Domain.Entities;
 using System.Data;
 using System.Net;
 using Z.Dapper.Plus;
-using Z.Dapper.Sql;
 
 namespace InvestmentApp.Application.Actions.StockDataHandler.Commands;
 

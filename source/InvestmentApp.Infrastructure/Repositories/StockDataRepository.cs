@@ -2,7 +2,6 @@
 using InvestmentApp.Application.Abstractions.ConnectionFactory;
 using InvestmentApp.Application.Abstractions.Repositories;
 using InvestmentApp.Domain.Entities;
-using Z.Dapper.Plus;
 
 namespace InvestmentApp.Infrastructure.Repositories;
 

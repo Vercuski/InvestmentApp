@@ -67,5 +67,9 @@
     <Build Include="dbo\Tables\ticker.sql" />
     <Build Include="dbo\Tables\stockData.sql" />
     <Build Include="dbo\Tables\TradeSignalPoint.sql" />
+    <Build Include="dbo\Tables\Position.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Database_To_Source.scmp" />
   </ItemGroup>
 </Project>

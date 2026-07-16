@@ -1,0 +1,158 @@
+@page "/positions"
+@using InvestmentApp.Domain.Entities
+@using InvestmentApp.Domain.Enums
+@inject IHttpClientFactory HttpClientFactory
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Positions</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.h4">Positions</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenAddDialogAsync">
+        Add position
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="ma-4" />
+}
+else if (_loadError)
+{
+    <MudAlert Severity="Severity.Error" Class="ma-4">
+        Couldn't reach the Investment API at the configured base URL. Check that it's running and reachable.
+    </MudAlert>
+}
+else if (_positions.Count == 0)
+{
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-4">No positions recorded yet.</MudText>
+}
+else
+{
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudTable Items="_positions" Hover="true" Dense="true" Elevation="0">
+            <HeaderContent>
+                <MudTh>Ticker</MudTh>
+                <MudTh>Exchange</MudTh>
+                <MudTh>Regime</MudTh>
+                <MudTh>Confidence</MudTh>
+                <MudTh>Purchase price</MudTh>
+                <MudTh>Shares</MudTh>
+                <MudTh>Purchase date</MudTh>
+                <MudTh>Sell price</MudTh>
+                <MudTh>Sell date</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.TickerSymbol</MudText></MudTd>
+                <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
+                <MudTd DataLabel="Regime">
+                    <MudChip T="string" Size="Size.Small"
+                             Color="@(context.Regime == MarketRegime.Trending ? Color.Primary : Color.Default)"
+                             Variant="@(context.Regime == MarketRegime.Trending ? Variant.Filled : Variant.Outlined)">
+                        @context.Regime
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Confidence">
+                    <MudProgressLinear Color="Color.Primary" Value="@((double)context.Confidence * 100)" Class="my-1" Style="width:80px;" />
+                </MudTd>
+                <MudTd DataLabel="Purchase price">@context.PurchasePrice.ToString("C")</MudTd>
+                <MudTd DataLabel="Shares">@context.NumberOfShares.ToString("N4")</MudTd>
+                <MudTd DataLabel="Purchase date">@context.PurchaseDate.ToString("d")</MudTd>
+                <MudTd DataLabel="Sell price">@(context.SellPrice.HasValue ? context.SellPrice.Value.ToString("C") : "—")</MudTd>
+                <MudTd DataLabel="Sell date">@(context.SellDate.HasValue ? context.SellDate.Value.ToString("d") : "—")</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Size="Size.Small"
+                             Color="@(context.SellDate is null ? Color.Success : Color.Default)"
+                             Variant="Variant.Filled">
+                        @(context.SellDate is null ? "Open" : "Closed")
+                    </MudChip>
+                </MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialogAsync(context))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+
+@code {
+    private List<PositionPoint> _positions = [];
+    private bool _loading = true;
+    private bool _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPositionsAsync();
+    }
+
+    private async Task LoadPositionsAsync()
+    {
+        _loading = true;
+        _loadError = false;
+        StateHasChanged();
+
+        var client = HttpClientFactory.CreateClient("InvestmentApi");
+
+        try
+        {
+            _positions = await client.GetFromJsonAsync<List<PositionPoint>>("api/Positions") ?? [];
+        }
+        catch (HttpRequestException)
+        {
+            _loadError = true;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OpenAddDialogAsync()
+    {
+        // Position defaults to null, which PositionEditDialog treats as "add new".
+        var dialog = await DialogService.ShowAsync<PositionEditDialog>("Add position");
+        await HandleDialogResultAsync(dialog);
+    }
+
+    private async Task OpenEditDialogAsync(PositionPoint position)
+    {
+        var parameters = new DialogParameters<PositionEditDialog>
+        {
+            { x => x.Position, position }
+        };
+        var dialog = await DialogService.ShowAsync<PositionEditDialog>("Edit position", parameters);
+        await HandleDialogResultAsync(dialog);
+    }
+
+    private async Task HandleDialogResultAsync(IDialogReference dialog)
+    {
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not PositionPoint position)
+        {
+            return;
+        }
+
+        var client = HttpClientFactory.CreateClient("InvestmentApi");
+
+        try
+        {
+            var response = await client.PutAsJsonAsync("api/Positions", position);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Position saved.", Severity.Success);
+                await LoadPositionsAsync();
+            }
+            else
+            {
+                Snackbar.Add("Failed to save position.", Severity.Error);
+            }
+        }
+        catch (HttpRequestException)
+        {
+            Snackbar.Add("Couldn't reach the Investment API.", Severity.Error);
+        }
+    }
+}

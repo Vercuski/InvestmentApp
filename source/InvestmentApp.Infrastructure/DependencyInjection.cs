@@ -41,6 +41,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<ITradeSignalPointRepository, TradeSignalPointRepository>();
         builder.Services.AddScoped<ITickerRepository, TickerRepository>();
         builder.Services.AddScoped<IExchangeRepository, ExchangeRepository>();
+        builder.Services.AddScoped<IPositionRepository, PositionRepository>();
         return builder;
     }
 

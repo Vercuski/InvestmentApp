@@ -1,6 +1,4 @@
-using Dapper;
 using InvestmentApp.Application.Abstractions;
-using InvestmentApp.Application.Abstractions.ConnectionFactory;
 using InvestmentApp.Application.Abstractions.Repositories;
 using InvestmentApp.Domain.Entities;
 
