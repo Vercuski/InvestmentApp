@@ -1,3 +1,4 @@
+using Hangfire;
 using InvestmentApp.Application;
 using InvestmentApp.Infrastructure;
 using InvestmentApp.Persistence;
@@ -16,6 +17,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => SwaggerGenOptionsConfiguration.ApplySwaggerGenOptions(options, builder));
 
 var app = builder.Build();
+
+app.UseHangfireDashboard();
 
 if (!app.Environment.IsProduction())
 {

@@ -1,3 +1,4 @@
+using Hangfire;
 using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.Repositories;
 using InvestmentApp.Application.Services;
@@ -6,6 +7,7 @@ using InvestmentApp.Infrastructure.Repositories;
 using InvestmentApp.Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -32,6 +34,18 @@ public static class DependencyInjection
         builder.AddHealthChecksRegistration();
         builder.AddLoggingRegistration();
         builder.AddRepositoriesRegistration();
+        builder.AddHangfire();
+        return builder;
+    }
+ 
+    private static IHostApplicationBuilder AddHangfire(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddHangfire(configuration => configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage("Server=localhost;Database=stocks;User Id=sa;Password=Password123;MultipleActiveResultSets=true;Encrypt=True;TrustServerCertificate=True"));
+        builder.Services.AddHangfireServer();
         return builder;
     }
 
