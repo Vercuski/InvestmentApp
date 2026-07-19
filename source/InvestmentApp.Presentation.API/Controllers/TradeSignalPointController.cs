@@ -38,4 +38,13 @@ public class TradeSignalPointController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
+    [AllowAnonymous]
+    [HttpGet]
+    [Route("ByTicker/{tickerSymbol}")]
+    public async Task<ActionResult<List<TradeSignalPointPoco>>> GetTradeSignalPointsByTickerAsync(string tickerSymbol)
+    {
+        var result = await mediator.Send(new GetTradeSignalPointsByTickerRequest(tickerSymbol));
+        return Ok(result.ToList());
+    }
+
 }

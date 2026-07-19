@@ -1,0 +1,228 @@
+@page "/chart"
+@page "/chart/{TickerSymbol}"
+@using InvestmentApp.Application.Contracts.Poco
+@using InvestmentApp.Domain.Entities
+@inject IHttpClientFactory HttpClientFactory
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Chart</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Price chart</MudText>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Spacing="3">
+    <MudTextField @bind-Value="_tickerSymbol" Label="Ticker symbol" Style="width:220px;" Immediate="true" />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadChartAsync" Disabled="_loading">
+        Chart
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="ma-4" />
+}
+else if (_loadError)
+{
+    <MudAlert Severity="Severity.Error" Class="ma-4">@_errorMessage</MudAlert>
+}
+
+@if (_hasChart)
+{
+    <MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-2" Spacing="4">
+        <MudCheckBox T="bool" Value="_showOpen" ValueChanged="@(v => OnSeriesToggled(0, v))" Label="Open" Color="Color.Success" />
+        <MudCheckBox T="bool" Value="_showHigh" ValueChanged="@(v => OnSeriesToggled(1, v))" Label="High" Color="Color.Info" />
+        <MudCheckBox T="bool" Value="_showLow" ValueChanged="@(v => OnSeriesToggled(2, v))" Label="Low" Color="Color.Dark" />
+        <MudCheckBox T="bool" Value="_showClose" ValueChanged="@(v => OnSeriesToggled(3, v))" Label="Close" Color="Color.Error" />
+        <MudCheckBox T="bool" Value="_showBuys" ValueChanged="@(v => OnSeriesToggled(4, v))" Label="Buy signals" Color="Color.Success" />
+        <MudCheckBox T="bool" Value="_showSells" ValueChanged="@(v => OnSeriesToggled(5, v))" Label="Sell signals" Color="Color.Error" />
+    </MudStack>
+
+    <MudPaper Class="pa-4" Elevation="1" Style="height:520px;">
+        <div style="position:relative; height:100%; width:100%;">
+            <canvas id="@_canvasId"></canvas>
+        </div>
+    </MudPaper>
+}
+
+@code {
+    /// <summary>
+    /// Optional ticker symbol supplied via the "/chart/{TickerSymbol}" route, e.g. when
+    /// navigating here from a ticker link on the Signals or Positions page. When present,
+    /// the textbox is populated and the chart is generated automatically.
+    /// </summary>
+    [Parameter]
+    public string? TickerSymbol { get; set; }
+
+    private string _tickerSymbol = string.Empty;
+    private string? _autoLoadedTicker;
+    private bool _loading;
+    private bool _loadError;
+    private string _errorMessage = string.Empty;
+    private bool _hasChart;
+    private bool _chartRendered;
+
+    private bool _showOpen = false;
+    private bool _showHigh = false;
+    private bool _showLow = false;
+    private bool _showClose = true;
+    private bool _showBuys = true;
+    private bool _showSells = true;
+
+    private readonly string _canvasId = $"stock-chart-{Guid.NewGuid():N}";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrWhiteSpace(TickerSymbol) ||
+            string.Equals(TickerSymbol, _autoLoadedTicker, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _tickerSymbol = TickerSymbol;
+        _autoLoadedTicker = TickerSymbol;
+        await LoadChartAsync();
+    }
+
+    private async Task LoadChartAsync()
+    {
+        var symbol = _tickerSymbol?.Trim();
+        if (string.IsNullOrWhiteSpace(symbol))
+        {
+            _loadError = true;
+            _errorMessage = "Enter a ticker symbol first.";
+            _hasChart = false;
+            return;
+        }
+
+        _loading = true;
+        _loadError = false;
+        _hasChart = false;
+        StateHasChanged();
+
+        var client = HttpClientFactory.CreateClient("InvestmentApi");
+
+        try
+        {
+            var stockDataTask = client.GetFromJsonAsync<List<StockData>>($"api/StockData/{Uri.EscapeDataString(symbol)}");
+            var signalsTask = client.GetFromJsonAsync<List<TradeSignalPointPoco>>($"api/TradeSignalPoint/ByTicker/{Uri.EscapeDataString(symbol)}");
+
+            List<StockData>? stockData = null;
+            List<TradeSignalPointPoco>? signals = null;
+
+            try
+            {
+                stockData = await stockDataTask;
+            }
+            catch (HttpRequestException)
+            {
+                // 404 for an unknown ticker lands here; handled below via the null check.
+            }
+
+            if (stockData is null || stockData.Count == 0)
+            {
+                _loadError = true;
+                _errorMessage = $"No stock data found for '{symbol}'.";
+                return;
+            }
+
+            try
+            {
+                signals = await signalsTask;
+            }
+            catch (HttpRequestException)
+            {
+                signals = [];
+            }
+
+            var orderedStockData = stockData.OrderBy(s => s.Date).ToList();
+            var payload = BuildChartPayload(orderedStockData, signals ?? []);
+
+            _showOpen = _showHigh = _showLow = _showClose = _showBuys = _showSells = true;
+            _hasChart = true;
+            StateHasChanged();
+
+            await JS.InvokeVoidAsync("stockChart.render", _canvasId, payload);
+            _chartRendered = true;
+        }
+        catch (HttpRequestException)
+        {
+            _loadError = true;
+            _errorMessage = "Couldn't reach the Investment API. Check that it's running and reachable.";
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private static object BuildChartPayload(List<StockData> stockData, List<TradeSignalPointPoco> signals)
+    {
+        var labels = stockData.Select(s => s.Date.ToString("yyyy-MM-dd")).ToList();
+        var closeByDate = stockData
+            .GroupBy(s => s.Date.Date)
+            .ToDictionary(g => g.Key, g => g.First().Close);
+
+        var buys = signals
+            .Where(s => string.Equals(s.Action, "Buy", StringComparison.OrdinalIgnoreCase))
+            .Select(s => new
+            {
+                x = s.PriceDate.ToString("yyyy-MM-dd"),
+                y = closeByDate.TryGetValue(s.PriceDate.Date, out var close) ? close : s.Close
+            })
+            .ToList();
+
+        var sells = signals
+            .Where(s => string.Equals(s.Action, "Sell", StringComparison.OrdinalIgnoreCase))
+            .Select(s => new
+            {
+                x = s.PriceDate.ToString("yyyy-MM-dd"),
+                y = closeByDate.TryGetValue(s.PriceDate.Date, out var close) ? close : s.Close
+            })
+            .ToList();
+
+        return new
+        {
+            labels,
+            open = stockData.Select(s => s.Open).ToList(),
+            high = stockData.Select(s => s.High).ToList(),
+            low = stockData.Select(s => s.Low).ToList(),
+            close = stockData.Select(s => s.Close).ToList(),
+            buys,
+            sells
+        };
+    }
+
+    private async Task OnSeriesToggled(int datasetIndex, bool visible)
+    {
+        switch (datasetIndex)
+        {
+            case 0: _showOpen = visible; break;
+            case 1: _showHigh = visible; break;
+            case 2: _showLow = visible; break;
+            case 3: _showClose = visible; break;
+            case 4: _showBuys = visible; break;
+            case 5: _showSells = visible; break;
+        }
+
+        if (_chartRendered)
+        {
+            await JS.InvokeVoidAsync("stockChart.setDatasetVisibility", _canvasId, datasetIndex, visible);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartRendered)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("stockChart.destroy", _canvasId);
+            }
+            catch (JSDisconnectedException)
+            {
+                // Circuit already gone; nothing to clean up.
+            }
+        }
+    }
+}

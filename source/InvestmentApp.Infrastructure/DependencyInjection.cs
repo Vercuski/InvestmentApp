@@ -7,7 +7,6 @@ using InvestmentApp.Infrastructure.Repositories;
 using InvestmentApp.Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -37,7 +36,7 @@ public static class DependencyInjection
         builder.AddHangfire();
         return builder;
     }
- 
+
     private static IHostApplicationBuilder AddHangfire(this IHostApplicationBuilder builder)
     {
         builder.Services.AddHangfire(configuration => configuration
@@ -87,7 +86,7 @@ public static class DependencyInjection
 
     private static IHostApplicationBuilder AddVPNRegistration(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddScoped<IVPNService, VPNService>();
+        builder.Services.AddScoped<IVpnService, VPNService>();
         return builder;
     }
 

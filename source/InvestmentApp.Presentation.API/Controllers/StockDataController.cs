@@ -1,4 +1,5 @@
 using InvestmentApp.Application.Actions.StockDataHandler.Commands;
+using InvestmentApp.Application.Actions.StockDataHandler.Queries;
 using InvestmentApp.Application.Actions.TickerHandler.Queries;
 using InvestmentApp.Domain.Entities;
 using MediatR;
@@ -14,6 +15,20 @@ namespace InvestmentApp.Presentation.API.Controllers;
 [Produces("application/json")]
 public class StockDataController(IMediator mediator) : ControllerBase
 {
+    [AllowAnonymous]
+    [HttpGet]
+    [Route("{tickerSymbol}")]
+    public async Task<ActionResult<List<StockData>>> GetStockDataByTickerSymbolAsync(string tickerSymbol)
+    {
+        var result = await mediator.Send(new GetStockDataByTickerSymbolRequest(tickerSymbol));
+        var stockDataList = result.ToList();
+        if (stockDataList.Count == 0)
+        {
+            return NotFound($"No stock data found for ticker '{tickerSymbol}'.");
+        }
+        return Ok(stockDataList);
+    }
+
     [AllowAnonymous]
     [HttpPost]
     [Route("")]

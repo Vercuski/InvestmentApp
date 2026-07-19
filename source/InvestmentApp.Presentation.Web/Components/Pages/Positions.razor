@@ -46,7 +46,7 @@ else
                 <MudTh></MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Ticker"><MudText Style="font-weight:500;">@context.TickerSymbol</MudText></MudTd>
+                <MudTd DataLabel="Ticker"><MudLink Href="@ChartNavigation.BuildChartUrl(context.TickerSymbol)" Style="font-weight:500;">@context.TickerSymbol</MudLink></MudTd>
                 <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
                 <MudTd DataLabel="Regime">
                     <MudChip T="string" Size="Size.Small"

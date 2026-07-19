@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace InvestmentApp.Infrastructure.Services;
 
-public class VPNService : IVPNService
+public class VPNService : IVpnService
 {
     public void ConnectToVPN(string countryName)
     {

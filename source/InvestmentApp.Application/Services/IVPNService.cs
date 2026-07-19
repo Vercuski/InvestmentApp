@@ -1,6 +1,6 @@
 ﻿namespace InvestmentApp.Application.Services;
 
-public interface IVPNService
+public interface IVpnService
 {
     void ConnectToVPN(string countryName);
     void DisconnectFromVPN();

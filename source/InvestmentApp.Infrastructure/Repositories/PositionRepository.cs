@@ -66,7 +66,7 @@ WHERE
     public async Task<IEnumerable<PositionPoint>> GetAllPositionsAsync()
     {
         using var connection = _connectionFactory.CreateReadConnection();
-        return (await connection.QueryAsync<PositionPoint>(GetAllPositionsSql)).OrderBy(x=>x.TickerSymbol);
+        return (await connection.QueryAsync<PositionPoint>(GetAllPositionsSql)).OrderBy(x => x.TickerSymbol);
     }
 
     public async Task<PositionPoint> UpsertPositionAsync(PositionPoint position)

@@ -35,7 +35,36 @@ ORDER by
 	T.tickerSymbol,
 	SD.[Date]";
 
+    private const string GetTradeSignalPointsByTickerSymbolSQL = @"SELECT
+	T.tickerSymbol,
+	ExchangeSymbol, 
+	SD.[close],
+	TSP.Action,
+	TSP.confidence,
+	TSP.Regime,
+	TSP.StopLossPrice,
+	SD.[Date],
+	TSP.PriceDate
+FROM
+	TradeSignalPoint TSP
+	INNER JOIN stockData SD
+		ON TSP.tickerSymbol = SD.tickerSymbol
+		AND TSP.priceDate = SD.[date]
+	INNER JOIN ticker T
+		ON T.tickerSymbol = TSP.tickerSymbol
+WHERE
+	T.tickerSymbol = @TickerSymbol
+	AND [action] <> 'Hold'
+ORDER BY
+	SD.[Date]";
+
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
+
+    public async Task<IEnumerable<TradeSignalPointPoco>> GetTradeSignalPointsByTickerSymbolAsync(string tickerSymbol)
+    {
+        using var connection = _connectionFactory.CreateReadConnection();
+        return await connection.QueryAsync<TradeSignalPointPoco>(GetTradeSignalPointsByTickerSymbolSQL, new { TickerSymbol = tickerSymbol });
+    }
 
     public async Task<IEnumerable<TradeSignalPointPoco>> GetLatestBuyTradeSignalPointsAsync([FromQuery] int confidenceLevel = 100)
     {

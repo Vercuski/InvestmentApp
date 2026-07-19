@@ -31,10 +31,6 @@ public class DataDownloadService(HttpClient httpClient) : IDataDownloadService
             Method = HttpMethod.Get,
             RequestUri = new Uri(url)
         };
-        //msg.Headers.Add(":authority", "query2.finance.yahoo.com");
-        //msg.Headers.Add(":method", "GET");
-        //msg.Headers.Add(":path", query);
-        //msg.Headers.Add(":scheme", "https");
         msg.Headers.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
         msg.Headers.Add("accept-encoding", "gzip, deflate, br, zstd");
         msg.Headers.Add("accept-language", "en-US,en;q=0.9");

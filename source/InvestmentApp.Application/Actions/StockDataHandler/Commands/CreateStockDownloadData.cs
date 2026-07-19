@@ -10,7 +10,7 @@ using Z.Dapper.Sql;
 namespace InvestmentApp.Application.Actions.StockDataHandler.Commands;
 
 public sealed record CreateStockDownloadRequest(List<Ticker> TickerList) : IMediatRCommandRequest<HttpStatusCode>;
-internal class CreateStockDownloadHandler(IDbConnectionFactory dbConnectionFactory, IVPNService vpnService,
+internal class CreateStockDownloadHandler(IDbConnectionFactory dbConnectionFactory, IVpnService vpnService,
     IDataDownloadService dataDownloadService)
     : IMediatRCommandHandler<CreateStockDownloadRequest, HttpStatusCode>
 {
