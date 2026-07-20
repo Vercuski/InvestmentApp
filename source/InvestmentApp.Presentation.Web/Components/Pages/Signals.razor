@@ -82,7 +82,7 @@ else
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
-                            <MudTd DataLabel="Ticker"><MudLink Href="@ChartNavigation.BuildChartUrl(context.TickerSymbol)" Style="font-weight:500;">@context.TickerSymbol</MudLink></MudTd>
+                            <MudTd DataLabel="Ticker"><MudLink Href="@ChartNavigation.BuildChartUrl(context.TickerSymbol)" Target="_blank" Style="font-weight:500;">@context.TickerSymbol</MudLink></MudTd>
                             <MudTd DataLabel="Regime">
                                 <MudChip T="string" Size="Size.Small"
                                          Color="@(context.Regime == "Trending" ? Color.Primary : Color.Default)"
@@ -133,7 +133,7 @@ else
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd DataLabel="Exchange">@context.ExchangeSymbol</MudTd>
-                            <MudTd DataLabel="Ticker"><MudLink Href="@ChartNavigation.BuildChartUrl(context.TickerSymbol)" Style="font-weight:500;">@context.TickerSymbol</MudLink></MudTd>
+                            <MudTd DataLabel="Ticker"><MudLink Href="@ChartNavigation.BuildChartUrl(context.TickerSymbol)" Target="_blank" Style="font-weight:500;">@context.TickerSymbol</MudLink></MudTd>
                             <MudTd DataLabel="Regime">
                                 <MudChip T="string" Size="Size.Small"
                                          Color="@(context.Regime == "Trending" ? Color.Primary : Color.Default)"

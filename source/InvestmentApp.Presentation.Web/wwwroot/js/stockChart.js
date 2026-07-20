@@ -5,6 +5,22 @@ window.stockChart = (function () {
     let chart = null;
 
     function buildDatasets(payload) {
+        const visible = Array.isArray(payload.visible) ? payload.visible : [];
+        const isHidden = (index) => visible.length > index ? !visible[index] : false;
+
+        const isFullConfidence = (context) => {
+            const point = context.raw;
+            return !!point
+                && typeof point.confidencePercent === 'number'
+                && Math.round(point.confidencePercent) >= 100;
+        };
+
+        const highlightBorderColor = (defaultColor) => (context) =>
+            isFullConfidence(context) ? 'rgb(255, 255, 0)' : defaultColor;
+
+        const highlightBorderWidth = (defaultWidth) => (context) =>
+            isFullConfidence(context) ? 3 : defaultWidth;
+
         return [
             {
                 label: 'Open',
@@ -14,7 +30,8 @@ window.stockChart = (function () {
                 backgroundColor: 'rgb(0, 153, 51)',
                 pointRadius: 0,
                 borderWidth: 2,
-                order: 4
+                order: 4,
+                hidden: isHidden(0)
             },
             {
                 label: 'High',
@@ -24,7 +41,8 @@ window.stockChart = (function () {
                 backgroundColor: 'rgb(0, 102, 204)',
                 pointRadius: 0,
                 borderWidth: 2,
-                order: 3
+                order: 3,
+                hidden: isHidden(1)
             },
             {
                 label: 'Low',
@@ -34,7 +52,8 @@ window.stockChart = (function () {
                 backgroundColor: 'rgb(0, 0, 0)',
                 pointRadius: 0,
                 borderWidth: 2,
-                order: 2
+                order: 2,
+                hidden: isHidden(2)
             },
             {
                 label: 'Close',
@@ -44,7 +63,8 @@ window.stockChart = (function () {
                 backgroundColor: 'rgb(204, 0, 0)',
                 pointRadius: 0,
                 borderWidth: 2,
-                order: 1
+                order: 1,
+                hidden: isHidden(3)
             },
             {
                 label: 'Buy signal',
@@ -56,9 +76,10 @@ window.stockChart = (function () {
                 pointRadius: 7,
                 pointHoverRadius: 9,
                 backgroundColor: 'rgb(0, 153, 51)',
-                borderColor: 'rgb(0, 90, 30)',
-                borderWidth: 1,
-                order: 0
+                borderColor: highlightBorderColor('rgb(0, 90, 30)'),
+                borderWidth: highlightBorderWidth(1),
+                order: 0,
+                hidden: isHidden(4)
             },
             {
                 label: 'Sell signal',
@@ -70,9 +91,10 @@ window.stockChart = (function () {
                 pointRadius: 7,
                 pointHoverRadius: 9,
                 backgroundColor: 'rgb(204, 0, 0)',
-                borderColor: 'rgb(120, 0, 0)',
-                borderWidth: 1,
-                order: 0
+                borderColor: highlightBorderColor('rgb(120, 0, 0)'),
+                borderWidth: highlightBorderWidth(1),
+                order: 0,
+                hidden: isHidden(5)
             }
         ];
     }
@@ -124,7 +146,16 @@ window.stockChart = (function () {
                             label: function (context) {
                                 const label = context.dataset.label || '';
                                 const value = context.parsed.y;
-                                return value == null ? label : `${label}: ${value.toFixed(2)}`;
+                                const priceText = value == null ? '' : value.toFixed(2);
+                                const confidencePercent = context.raw && typeof context.raw.confidencePercent === 'number'
+                                    ? context.raw.confidencePercent
+                                    : null;
+
+                                if (confidencePercent != null) {
+                                    return `${label}: ${priceText} (confidence ${confidencePercent.toFixed(0)}%)`;
+                                }
+
+                                return value == null ? label : `${label}: ${priceText}`;
                             }
                         }
                     }

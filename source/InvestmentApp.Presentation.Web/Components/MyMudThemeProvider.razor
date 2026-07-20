@@ -1,8 +1,11 @@
 <CascadingValue Value=false Name="UsePopoverProvider">
-    <MudThemeProvider Theme="MyTheme"></MudThemeProvider>
+    <MudThemeProvider Theme="MyTheme" IsDarkMode="IsDarkMode"></MudThemeProvider>
 </CascadingValue>
 
 @code {
+    [Parameter]
+    public bool IsDarkMode { get; set; }
+
     public static MudTheme MyTheme => new()
         {
             PaletteLight = new PaletteLight()

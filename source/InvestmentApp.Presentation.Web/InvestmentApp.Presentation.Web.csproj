@@ -13,7 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\js\stockChart.js" />
+    <None Include="wwwroot\js\stockChart.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   

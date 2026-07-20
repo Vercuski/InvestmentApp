@@ -60,10 +60,12 @@ else if (_loadError)
     private string _errorMessage = string.Empty;
     private bool _hasChart;
     private bool _chartRendered;
+    private bool _needsChartRender;
+    private object? _pendingChartPayload;
 
-    private bool _showOpen = false;
-    private bool _showHigh = false;
-    private bool _showLow = false;
+    private bool _showOpen;
+    private bool _showHigh;
+    private bool _showLow;
     private bool _showClose = true;
     private bool _showBuys = true;
     private bool _showSells = true;
@@ -135,14 +137,19 @@ else if (_loadError)
             }
 
             var orderedStockData = stockData.OrderBy(s => s.Date).ToList();
+
+            _showOpen = false;
+            _showHigh = false;
+            _showLow = false;
+            _showClose = true;
+            _showBuys = true;
+            _showSells = true;
+
             var payload = BuildChartPayload(orderedStockData, signals ?? []);
 
-            _showOpen = _showHigh = _showLow = _showClose = _showBuys = _showSells = true;
+            _pendingChartPayload = payload;
+            _needsChartRender = true;
             _hasChart = true;
-            StateHasChanged();
-
-            await JS.InvokeVoidAsync("stockChart.render", _canvasId, payload);
-            _chartRendered = true;
         }
         catch (HttpRequestException)
         {
@@ -156,7 +163,24 @@ else if (_loadError)
         }
     }
 
-    private static object BuildChartPayload(List<StockData> stockData, List<TradeSignalPointPoco> signals)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // During the static-prerender pass (e.g. the first response for a page opened
+        // in a new tab via target="_blank"), RendererInfo.IsInteractive is false and no
+        // JS runtime is attached yet - calling JS here would throw. Once the interactive
+        // circuit connects, the component's lifecycle runs again with IsInteractive true,
+        // at which point it's safe to draw the chart.
+        if (!RendererInfo.IsInteractive || !_needsChartRender || _pendingChartPayload is null)
+        {
+            return;
+        }
+
+        _needsChartRender = false;
+        await JS.InvokeVoidAsync("stockChart.render", _canvasId, _pendingChartPayload);
+        _chartRendered = true;
+    }
+
+    private object BuildChartPayload(List<StockData> stockData, List<TradeSignalPointPoco> signals)
     {
         var labels = stockData.Select(s => s.Date.ToString("yyyy-MM-dd")).ToList();
         var closeByDate = stockData
@@ -168,7 +192,8 @@ else if (_loadError)
             .Select(s => new
             {
                 x = s.PriceDate.ToString("yyyy-MM-dd"),
-                y = closeByDate.TryGetValue(s.PriceDate.Date, out var close) ? close : s.Close
+                y = closeByDate.TryGetValue(s.PriceDate.Date, out var close) ? close : s.Close,
+                confidencePercent = (double)(s.Confidence * 100)
             })
             .ToList();
 
@@ -177,7 +202,8 @@ else if (_loadError)
             .Select(s => new
             {
                 x = s.PriceDate.ToString("yyyy-MM-dd"),
-                y = closeByDate.TryGetValue(s.PriceDate.Date, out var close) ? close : s.Close
+                y = closeByDate.TryGetValue(s.PriceDate.Date, out var close) ? close : s.Close,
+                confidencePercent = (double)(s.Confidence * 100)
             })
             .ToList();
 
@@ -189,7 +215,9 @@ else if (_loadError)
             low = stockData.Select(s => s.Low).ToList(),
             close = stockData.Select(s => s.Close).ToList(),
             buys,
-            sells
+            sells,
+            // Matches dataset order 0-5 in stockChart.js: Open, High, Low, Close, Buy, Sell.
+            visible = new[] { _showOpen, _showHigh, _showLow, _showClose, _showBuys, _showSells }
         };
     }
 
