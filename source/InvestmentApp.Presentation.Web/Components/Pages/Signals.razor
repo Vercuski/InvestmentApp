@@ -12,7 +12,7 @@
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Spacing="3">
     <MudNumericField T="int" @bind-Value="_confidenceLevel" Label="Confidence level" Min="0" Max="100"
-                      Adornment="Adornment.End" AdornmentText="%" Style="width:180px;" />
+                     Adornment="Adornment.End" AdornmentText="%" Style="width:180px;" />
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadSignalsAsync" Disabled="_loading">
         Reevaluate
     </MudButton>
@@ -231,6 +231,7 @@ else
             Regime = regime,
             Confidence = signal.Confidence,
             PurchasePrice = signal.Close,
+            NumberOfShares = 100m,
             PurchaseDate = signal.Date == default ? DateTime.Today : signal.Date
         };
 

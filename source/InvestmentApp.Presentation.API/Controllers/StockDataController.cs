@@ -30,6 +30,19 @@ public class StockDataController(IMediator mediator) : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpGet]
+    [Route("{tickerSymbol}/latest")]
+    public async Task<ActionResult<StockData>> GetLatestStockDataByTickerSymbolAsync(string tickerSymbol)
+    {
+        var result = await mediator.Send(new GetLatestStockDataByTickerSymbolRequest(tickerSymbol));
+        if (result is null)
+        {
+            return NotFound($"No stock data found for ticker '{tickerSymbol}'.");
+        }
+        return Ok(result);
+    }
+
+    [AllowAnonymous]
     [HttpPost]
     [Route("")]
     public async Task<ActionResult<List<StockData>>> DownloadSingleStockDataPoint([FromQuery] string TickerSymbol)

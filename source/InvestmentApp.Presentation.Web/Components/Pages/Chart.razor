@@ -15,6 +15,17 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadChartAsync" Disabled="_loading">
         Chart
     </MudButton>
+    @if (_tickerLookupAttempted)
+    {
+        @if (!string.IsNullOrWhiteSpace(_tickerDescription))
+        {
+            <MudLink Href="@($"https://finance.yahoo.com/quote/{Uri.EscapeDataString(_tickerSymbol)}/analysis/")" Target="_blank">@_tickerDescription</MudLink>
+        }
+        else
+        {
+            <MudText>N/A</MudText>
+        }
+    }
 </MudStack>
 
 @if (_loading)
@@ -55,6 +66,8 @@ else if (_loadError)
 
     private string _tickerSymbol = string.Empty;
     private string? _autoLoadedTicker;
+    private string? _tickerDescription;
+    private bool _tickerLookupAttempted;
     private bool _loading;
     private bool _loadError;
     private string _errorMessage = string.Empty;
@@ -107,9 +120,11 @@ else if (_loadError)
         {
             var stockDataTask = client.GetFromJsonAsync<List<StockData>>($"api/StockData/{Uri.EscapeDataString(symbol)}");
             var signalsTask = client.GetFromJsonAsync<List<TradeSignalPointPoco>>($"api/TradeSignalPoint/ByTicker/{Uri.EscapeDataString(symbol)}");
+            var tickerTask = client.GetFromJsonAsync<Ticker?>($"api/Ticker/{Uri.EscapeDataString(symbol)}");
 
             List<StockData>? stockData = null;
             List<TradeSignalPointPoco>? signals = null;
+            Ticker? tickerInfo = null;
 
             try
             {
@@ -119,6 +134,18 @@ else if (_loadError)
             {
                 // 404 for an unknown ticker lands here; handled below via the null check.
             }
+
+            try
+            {
+                tickerInfo = await tickerTask;
+            }
+            catch (HttpRequestException)
+            {
+                // 404 for an unknown ticker; Description falls back to "N/A" below.
+            }
+
+            _tickerDescription = tickerInfo?.Description;
+            _tickerLookupAttempted = true;
 
             if (stockData is null || stockData.Count == 0)
             {

@@ -24,7 +24,9 @@ public class DataDownloadService(HttpClient httpClient) : IDataDownloadService
         // Convert to Unix timestamp (seconds since January 1, 1970 UTC)
         long endDateUnixTimestamp = ((DateTimeOffset)endDate).ToUnixTimeSeconds();
 
-        string query = $"v8/finance/chart/{ticker.TickerSymbol}?period1={endDateUnixTimestamp}&period2={startDateUnixTimestamp}&interval=1d&includePrePost=true&events=div%7Csplit%7Cearn&lang=en-US&region=US&source=cosaic";
+        string? actualTicker = ticker.ExchangeSymbol=="FOREX" ? $"{ticker.TickerSymbol}=X" : ticker.TickerSymbol;
+
+        string query = $"v8/finance/chart/{actualTicker}?period1={endDateUnixTimestamp}&period2={startDateUnixTimestamp}&interval=1d&includePrePost=true&events=div%7Csplit%7Cearn&lang=en-US&region=US&source=cosaic";
         string url = $"{_httpClient.BaseAddress}{query}";
         HttpRequestMessage msg = new()
         {

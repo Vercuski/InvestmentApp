@@ -23,6 +23,21 @@ WHERE
 ORDER BY
 	[Date]";
 
+    private const string GetLatestStockDataByTickerSymbolSql = @"SELECT TOP (1)
+	[TickerSymbol],
+	[Open],
+	[High],
+	[Low],
+	[Close],
+	[Volume],
+	[Date]
+FROM
+	StockData
+WHERE
+	[TickerSymbol] = @TickerSymbol
+ORDER BY
+	[Date] DESC";
+
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
 
     public async Task<int> DeleteStockDataByTicker(Ticker ticker)
@@ -35,5 +50,11 @@ ORDER BY
     {
         using var connection = _connectionFactory.CreateReadConnection();
         return await connection.QueryAsync<StockData>(GetStockDataByTickerSymbolSql, new { TickerSymbol = tickerSymbol });
+    }
+
+    public async Task<StockData?> GetLatestStockDataByTickerSymbolAsync(string tickerSymbol)
+    {
+        using var connection = _connectionFactory.CreateReadConnection();
+        return await connection.QuerySingleOrDefaultAsync<StockData?>(GetLatestStockDataByTickerSymbolSql, new { TickerSymbol = tickerSymbol });
     }
 }

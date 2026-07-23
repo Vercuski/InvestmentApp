@@ -13,7 +13,7 @@ internal sealed class GetTickerListHandler(IDbConnectionFactory dbConnectionFact
         CancellationToken cancellationToken)
     {
         var dbConnection = dbConnectionFactory.CreateReadConnection();
-        List<Ticker>? response = [.. dbConnection.Query<Ticker>("SELECT tickerSymbol, Description FROM dbo.ticker WHERE exchangeSymbol IN (SELECT exchangeSymbol FROM Exchanges WHERE active = 1) ORDER BY tickerSymbol")];
+        List<Ticker>? response = [.. dbConnection.Query<Ticker>("SELECT tickerSymbol, Description, exchangeSymbol FROM dbo.ticker WHERE exchangeSymbol IN (SELECT exchangeSymbol FROM Exchanges WHERE active = 1) ORDER BY tickerSymbol")];
 
         if (response is null)
         {

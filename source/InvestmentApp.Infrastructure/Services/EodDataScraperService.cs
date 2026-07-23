@@ -8,6 +8,7 @@ using OpenQA.Selenium.Support.UI;
 using System.Net;
 using WebDriverManager;
 using WebDriverManager.DriverConfigs.Impl;
+using WebDriverManager.Helpers;
 using SeleniumCookie = OpenQA.Selenium.Cookie;
 
 namespace InvestmentApp.Infrastructure.Services;
@@ -78,7 +79,7 @@ public class EodDataScraperService(IOptions<EodDataOptions> eodDataOptions) : IE
     /// </summary>
     private CookieContainer LoginAndGetSessionCookies()
     {
-        new DriverManager().SetUpDriver(new ChromeConfig());
+        new DriverManager().SetUpDriver(new ChromeConfig(), VersionResolveStrategy.MatchingBrowser);
 
         var chromeOptions = new ChromeOptions();
         chromeOptions.AddArgument("--headless=new");
