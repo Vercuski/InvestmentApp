@@ -65,4 +65,14 @@ public class StockDataController(IMediator mediator) : ControllerBase
         await mediator.Send(new CreateStockDownloadRequest(tickerList));
         return Ok();
     }
+
+    [AllowAnonymous]
+    [HttpPost]
+    [Route("Download/OpenPositions")]
+    public async Task<IActionResult> DownloadOpenPositionStockDataAsync()
+    {
+        var tickerList = await mediator.Send(new GetOpenPositionTickersRequest());
+        await mediator.Send(new CreateStockDownloadForTickersRequest(tickerList));
+        return Ok();
+    }
 }

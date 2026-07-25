@@ -1,6 +1,7 @@
 // Thin wrapper around Chart.js for the ticker price chart on the Chart page.
 // Dataset order is fixed and relied on by Chart.razor's checkbox indices:
-//   0 = Open, 1 = High, 2 = Low, 3 = Close, 4 = Buy signals, 5 = Sell signals
+//   0 = Open, 1 = High, 2 = Low, 3 = Close, 4 = Buy signals, 5 = Sell signals,
+//   6 = Open position
 window.stockChart = (function () {
     let chart = null;
 
@@ -95,6 +96,22 @@ window.stockChart = (function () {
                 borderWidth: highlightBorderWidth(1),
                 order: 0,
                 hidden: isHidden(5)
+            },
+            {
+                label: 'Open position',
+                data: payload.openPositions,
+                type: 'scatter',
+                showLine: false,
+                pointStyle: 'rect',
+                pointRadius: 8,
+                pointHoverRadius: 10,
+                backgroundColor: 'rgb(0, 90, 220)',
+                borderColor: 'rgb(255, 140, 0)',
+                borderWidth: 3,
+                // Drawn above every other dataset (lower order = on top in Chart.js) so
+                // the marker stays visible even when a purchase lands on a buy signal.
+                order: -1,
+                hidden: isHidden(6)
             }
         ];
     }

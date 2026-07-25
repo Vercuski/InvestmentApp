@@ -13,6 +13,12 @@ public interface ITickerRepository
     Task<Ticker?> GetTickerBySymbolAsync(string tickerSymbol);
 
     /// <summary>
+    /// Returns the tickers matching any of the given symbols. Symbols with no
+    /// matching row are simply omitted from the result.
+    /// </summary>
+    Task<IEnumerable<Ticker>> GetTickersBySymbolsAsync(IEnumerable<string> tickerSymbols);
+
+    /// <summary>
     /// Truncates the Ticker table and inserts the given tickers in its place.
     /// </summary>
     Task ReplaceAllAsync(IEnumerable<Ticker> tickers);

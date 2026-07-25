@@ -428,3 +428,4 @@ FodyWeavers.xsd
 *.msm
 *.msp
 /source/.sonarqube/conf
+/source/InvestmentApp.Presentation.API/appsettings.json

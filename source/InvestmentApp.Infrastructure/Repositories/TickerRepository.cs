@@ -13,6 +13,7 @@ public class TickerRepository(IDbConnectionFactory connectionFactory) : ITickerR
     // Adjust the table/column names here if your schema differs.
     private const string GetExchangeCodesSql = "SELECT ExchangeSymbol, ExchangeDescription, Active FROM Exchanges ORDER BY ExchangeSymbol";
     private const string GetTickerBySymbolSql = "SELECT TickerSymbol, Description, ExchangeSymbol FROM Ticker WHERE TickerSymbol = @TickerSymbol";
+    private const string GetTickersBySymbolsSql = "SELECT TickerSymbol, Description, ExchangeSymbol FROM Ticker WHERE TickerSymbol IN @TickerSymbols";
 
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
 
@@ -26,6 +27,18 @@ public class TickerRepository(IDbConnectionFactory connectionFactory) : ITickerR
     {
         using var connection = _connectionFactory.CreateReadConnection();
         return await connection.QuerySingleOrDefaultAsync<Ticker>(GetTickerBySymbolSql, new { TickerSymbol = tickerSymbol });
+    }
+
+    public async Task<IEnumerable<Ticker>> GetTickersBySymbolsAsync(IEnumerable<string> tickerSymbols)
+    {
+        var symbolList = tickerSymbols as IReadOnlyCollection<string> ?? [.. tickerSymbols];
+        if (symbolList.Count == 0)
+        {
+            return [];
+        }
+
+        using var connection = _connectionFactory.CreateReadConnection();
+        return await connection.QueryAsync<Ticker>(GetTickersBySymbolsSql, new { TickerSymbols = symbolList });
     }
 
     public async Task ReplaceAllAsync(IEnumerable<Ticker> tickers)

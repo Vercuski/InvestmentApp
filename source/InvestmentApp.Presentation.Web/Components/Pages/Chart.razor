@@ -46,6 +46,7 @@ else if (_loadError)
         <MudCheckBox T="bool" Value="_showClose" ValueChanged="@(v => OnSeriesToggled(3, v))" Label="Close" Color="Color.Error" />
         <MudCheckBox T="bool" Value="_showBuys" ValueChanged="@(v => OnSeriesToggled(4, v))" Label="Buy signals" Color="Color.Success" />
         <MudCheckBox T="bool" Value="_showSells" ValueChanged="@(v => OnSeriesToggled(5, v))" Label="Sell signals" Color="Color.Error" />
+        <MudCheckBox T="bool" Value="_showOpenPosition" ValueChanged="@(v => OnSeriesToggled(6, v))" Label="Open position" Color="Color.Warning" />
     </MudStack>
 
     <MudPaper Class="pa-4" Elevation="1" Style="height:520px;">
@@ -82,6 +83,7 @@ else if (_loadError)
     private bool _showClose = true;
     private bool _showBuys = true;
     private bool _showSells = true;
+    private bool _showOpenPosition = true;
 
     private readonly string _canvasId = $"stock-chart-{Guid.NewGuid():N}";
 
@@ -121,10 +123,12 @@ else if (_loadError)
             var stockDataTask = client.GetFromJsonAsync<List<StockData>>($"api/StockData/{Uri.EscapeDataString(symbol)}");
             var signalsTask = client.GetFromJsonAsync<List<TradeSignalPointPoco>>($"api/TradeSignalPoint/ByTicker/{Uri.EscapeDataString(symbol)}");
             var tickerTask = client.GetFromJsonAsync<Ticker?>($"api/Ticker/{Uri.EscapeDataString(symbol)}");
+            var positionsTask = client.GetFromJsonAsync<List<PositionPoint>>("api/Positions");
 
             List<StockData>? stockData = null;
             List<TradeSignalPointPoco>? signals = null;
             Ticker? tickerInfo = null;
+            List<PositionPoint>? positions = null;
 
             try
             {
@@ -163,6 +167,15 @@ else if (_loadError)
                 signals = [];
             }
 
+            try
+            {
+                positions = await positionsTask;
+            }
+            catch (HttpRequestException)
+            {
+                positions = [];
+            }
+
             var orderedStockData = stockData.OrderBy(s => s.Date).ToList();
 
             _showOpen = false;
@@ -171,8 +184,9 @@ else if (_loadError)
             _showClose = true;
             _showBuys = true;
             _showSells = true;
+            _showOpenPosition = true;
 
-            var payload = BuildChartPayload(orderedStockData, signals ?? []);
+            var payload = BuildChartPayload(orderedStockData, signals ?? [], positions ?? [], symbol);
 
             _pendingChartPayload = payload;
             _needsChartRender = true;
@@ -207,7 +221,7 @@ else if (_loadError)
         _chartRendered = true;
     }
 
-    private object BuildChartPayload(List<StockData> stockData, List<TradeSignalPointPoco> signals)
+    private object BuildChartPayload(List<StockData> stockData, List<TradeSignalPointPoco> signals, List<PositionPoint> positions, string tickerSymbol)
     {
         var labels = stockData.Select(s => s.Date.ToString("yyyy-MM-dd")).ToList();
         var closeByDate = stockData
@@ -234,6 +248,17 @@ else if (_loadError)
             })
             .ToList();
 
+        // Every still-open (unsold) position for this ticker gets its own marker at the
+        // purchase date/price, regardless of how many open positions exist for it.
+        var openPositions = positions
+            .Where(p => p.SellDate is null && string.Equals(p.TickerSymbol, tickerSymbol, StringComparison.OrdinalIgnoreCase))
+            .Select(p => new
+            {
+                x = p.PurchaseDate.ToString("yyyy-MM-dd"),
+                y = p.PurchasePrice
+            })
+            .ToList();
+
         return new
         {
             labels,
@@ -243,8 +268,9 @@ else if (_loadError)
             close = stockData.Select(s => s.Close).ToList(),
             buys,
             sells,
-            // Matches dataset order 0-5 in stockChart.js: Open, High, Low, Close, Buy, Sell.
-            visible = new[] { _showOpen, _showHigh, _showLow, _showClose, _showBuys, _showSells }
+            openPositions,
+            // Matches dataset order 0-6 in stockChart.js: Open, High, Low, Close, Buy, Sell, Open position.
+            visible = new[] { _showOpen, _showHigh, _showLow, _showClose, _showBuys, _showSells, _showOpenPosition }
         };
     }
 
@@ -258,6 +284,7 @@ else if (_loadError)
             case 3: _showClose = visible; break;
             case 4: _showBuys = visible; break;
             case 5: _showSells = visible; break;
+            case 6: _showOpenPosition = visible; break;
         }
 
         if (_chartRendered)
