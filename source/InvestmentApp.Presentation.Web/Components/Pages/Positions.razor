@@ -38,6 +38,7 @@ else
                 <MudTh>Regime</MudTh>
                 <MudTh>Confidence</MudTh>
                 <MudTh>Purchase price</MudTh>
+                <MudTh>Current price</MudTh>
                 <MudTh>Shares</MudTh>
                 <MudTh>Purchase date</MudTh>
                 <MudTh>Sell price</MudTh>
@@ -59,6 +60,16 @@ else
                     <MudProgressLinear Color="Color.Primary" Value="@((double)context.Confidence * 100)" Class="my-1" Style="width:80px;" />
                 </MudTd>
                 <MudTd DataLabel="Purchase price">@context.PurchasePrice.ToString("C")</MudTd>
+                <MudTd DataLabel="Current price">
+                    @if (context.TickerSymbol is not null && _currentPriceByTicker.TryGetValue(context.TickerSymbol, out var currentPrice))
+                    {
+                        <MudText Color="@GetCurrentPriceColor(currentPrice, context.PurchasePrice)">@currentPrice.ToString("C")</MudText>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Secondary">—</MudText>
+                    }
+                </MudTd>
                 <MudTd DataLabel="Shares">@context.NumberOfShares.ToString("N4")</MudTd>
                 <MudTd DataLabel="Purchase date">@context.PurchaseDate.ToString("d")</MudTd>
                 <MudTd DataLabel="Sell price">@(context.SellPrice.HasValue ? context.SellPrice.Value.ToString("C") : "—")</MudTd>
@@ -82,6 +93,47 @@ else
     private List<PositionPoint> _positions = [];
     private bool _loading = true;
     private bool _loadError;
+    private Dictionary<string, decimal> _currentPriceByTicker = new(StringComparer.OrdinalIgnoreCase);
+
+    private async Task LoadCurrentPricesAsync(HttpClient client)
+    {
+        var tickerSymbols = _positions
+            .Where(p => p.TickerSymbol is not null)
+            .Select(p => p.TickerSymbol!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var results = await Task.WhenAll(
+            tickerSymbols.Select(tickerSymbol => GetLatestStockDataAsync(client, tickerSymbol)));
+
+        _currentPriceByTicker = results
+            .Where(result => result.StockData is not null)
+            .ToDictionary(
+                result => result.TickerSymbol,
+                result => result.StockData!.Close,
+                StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static async Task<(string TickerSymbol, StockData? StockData)> GetLatestStockDataAsync(HttpClient client, string tickerSymbol)
+    {
+        try
+        {
+            var stockData = await client.GetFromJsonAsync<StockData>($"api/StockData/{tickerSymbol}/latest");
+            return (tickerSymbol, stockData);
+        }
+        catch (HttpRequestException)
+        {
+            return (tickerSymbol, null); // no data downloaded for this ticker yet — don't fail the whole page
+        }
+    }
+
+    private static Color GetCurrentPriceColor(decimal currentPrice, decimal purchasePrice)
+    {
+        if (currentPrice > purchasePrice) return Color.Success;
+        if (currentPrice < purchasePrice) return Color.Error;
+        return Color.Default;
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,6 +151,7 @@ else
         try
         {
             _positions = await client.GetFromJsonAsync<List<PositionPoint>>("api/Positions") ?? [];
+            await LoadCurrentPricesAsync(client);
         }
         catch (HttpRequestException)
         {
