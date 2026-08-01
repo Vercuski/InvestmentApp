@@ -23,6 +23,12 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
     ChaikinMoneyFlowCalculator chaikinMoneyFlowCalculator,
     KeltnerChannelsCalculator keltnerChannelsCalculator,
     //MovingAverageCrossoverCalculator movingAverageCrossoverCalculator,
+    SuperTrendCalculator superTrendCalculator,
+    ParabolicSarCalculator parabolicSarCalculator,
+    DonchianChannelsCalculator donchianChannelsCalculator,
+    MfiCalculator mfiCalculator,
+    WilliamsPercentRCalculator williamsPercentRCalculator,
+    AroonCalculator aroonCalculator,
     SignalAggregator signalAggregator)
     : IMediatRCommandHandler<RunCalculationRequest, HttpStatusCode>
 {
@@ -55,6 +61,12 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
                 var chaikinMoneyFlowCalculation = chaikinMoneyFlowCalculator.Calculate(stockDataList);
                 var keltnerChannelsCalculation = keltnerChannelsCalculator.Calculate(stockDataList);
                 //var movingAverageCrossoverCalculation = movingAverageCrossoverCalculator.Calculate(stockDataList);
+                var superTrendCalculation = superTrendCalculator.Calculate(stockDataList);
+                var parabolicSarCalculation = parabolicSarCalculator.Calculate(stockDataList);
+                var donchianChannelsCalculation = donchianChannelsCalculator.Calculate(stockDataList);
+                var mfiCalculation = mfiCalculator.Calculate(stockDataList);
+                var williamsPercentRCalculation = williamsPercentRCalculator.Calculate(stockDataList);
+                var aroonCalculation = aroonCalculator.Calculate(stockDataList);
                 signalAggregatorCalculation.AddRange(signalAggregator.Calculate(
                     stockDataList,
                     macdCalculation,
@@ -65,7 +77,13 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
                     atrCalculation,
                     cciCalculation,
                     chaikinMoneyFlowCalculation,
-                    keltnerChannelsCalculation));
+                    keltnerChannelsCalculation,
+                    superTrendCalculation,
+                    parabolicSarCalculation,
+                    donchianChannelsCalculation,
+                    mfiCalculation,
+                    williamsPercentRCalculation,
+                    aroonCalculation));
             }
             await dbConnection.BulkInsertAsync<TradeSignalPoint>(signalAggregatorCalculation);
         }

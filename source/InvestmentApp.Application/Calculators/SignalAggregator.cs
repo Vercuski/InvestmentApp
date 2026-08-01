@@ -16,23 +16,28 @@ namespace InvestmentApp.Application.Calculators;
 /// <list type="bullet">
 /// <item><description>
 /// <b>Trending</b> (<see cref="AdxTrendStrength.Strong"/>): follow <see cref="MacdPoint.Crossover"/>.
-/// A bullish/bearish MACD crossover becomes a Buy/Sell. Confidence is layered from two
-/// independent confirmations: <see cref="ObvPoint.Trend"/> agreeing (volume behind the move)
-/// and price breaking the same-direction <see cref="KeltnerChannelsPoint"/> band (genuine
-/// volatility expansion, not just a weak EMA cross). Both agreeing is the strongest read;
-/// neither agreeing is the weakest signal that still clears the MACD-cross bar.
+/// A bullish/bearish MACD crossover becomes a Buy/Sell. Confidence is then scored by how
+/// many of six independent trend confirmations agree with that direction: <see cref="ObvPoint.Trend"/>
+/// (volume behind the move), price breaking the same-direction <see cref="KeltnerChannelsPoint"/>
+/// band (genuine volatility expansion), <see cref="SuperTrendPoint.Trend"/>,
+/// <see cref="ParabolicSarPoint.Trend"/>, a same-direction <see cref="DonchianChannelsPoint.Signal"/>
+/// breakout, and a same-direction <see cref="AroonPoint.Trend"/>. See
+/// <see cref="TrendingConfidence"/> for how the count of agreeing confirmations maps to a tier.
 /// </description></item>
 /// <item><description>
 /// <b>Ranging</b> (<see cref="AdxTrendStrength.Weak"/>): trade mean-reversion. Price at the
 /// lower Bollinger Band together with an oversold RSI is a Buy; price at the upper band
 /// together with an overbought RSI is a Sell. MACD crossovers are ignored in this regime,
-/// since trend-following signals whipsaw in a ranging market. <see cref="CciPoint.Zone"/>
-/// agreeing with RSI's zone raises confidence, since it's a second oscillator built on
-/// different math confirming the same overbought/oversold read. <see cref="ChaikinMoneyFlowPoint.Zone"/>
-/// acts as a veto rather than a vote: money flow still running against the reversal (heavy
-/// distribution under a Buy setup, heavy accumulation under a Sell setup) is a "falling
-/// knife" warning that suppresses the signal entirely, since it's independent information
-/// a price oscillator can't see.
+/// since trend-following signals whipsaw in a ranging market. Confidence is then scored by
+/// how many of three independent oscillators agree with the same overbought/oversold read:
+/// <see cref="CciPoint.Zone"/>, <see cref="MfiPoint.Zone"/>, and <see cref="WilliamsPercentRPoint.Zone"/>
+/// &#8212; three different constructions (a mean-deviation oscillator, a volume-weighted
+/// oscillator, and a pure range oscillator) landing on the same read is stronger evidence
+/// than any one alone. See <see cref="RangingConfidence"/> for how the count maps to a tier.
+/// <see cref="ChaikinMoneyFlowPoint.Zone"/> still acts as a veto rather than a vote: money
+/// flow running against the reversal (heavy distribution under a Buy setup, heavy
+/// accumulation under a Sell setup) is a "falling knife" warning that suppresses the signal
+/// entirely, since it's independent information the price oscillators above can't see.
 /// </description></item>
 /// </list>
 /// <para>
@@ -43,9 +48,9 @@ namespace InvestmentApp.Application.Calculators;
 /// </remarks>
 public sealed class SignalAggregator
 {
-    // Confidence tiers. Kept as named constants rather than inline literals now that both
-    // regimes produce more than two tiers, so the meaning of each number stays legible at
-    // the call site in Evaluate().
+    // Confidence tiers. Kept as named constants rather than inline literals so the meaning
+    // of each number stays legible at the call site in Evaluate(), TrendingConfidence(),
+    // and RangingConfidence().
     private const decimal FullConfidence = 1.0m;
     private const decimal HighConfidence = 0.85m;
     private const decimal ModerateConfidence = 0.75m;
@@ -73,8 +78,8 @@ public sealed class SignalAggregator
     /// Composes a <see cref="TradeSignalPoint"/> series from the given price bars and
     /// pre-computed indicator series, all of which must belong to the same ticker.
     /// Points are only produced for dates present in every one of the required series
-    /// (an inner join), since MACD, RSI, ADX, etc. each become defined after a different
-    /// number of warm-up bars.
+    /// (an inner join), since each calculator becomes defined after a different number of
+    /// warm-up bars.
     /// </summary>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="priceSeries"/> or any indicator series is null or empty,
@@ -90,7 +95,13 @@ public sealed class SignalAggregator
         IReadOnlyList<AtrPoint> atrSeries,
         IReadOnlyList<CciPoint> cciSeries,
         IReadOnlyList<ChaikinMoneyFlowPoint> chaikinMoneyFlowSeries,
-        IReadOnlyList<KeltnerChannelsPoint> keltnerChannelsSeries)
+        IReadOnlyList<KeltnerChannelsPoint> keltnerChannelsSeries,
+        IReadOnlyList<SuperTrendPoint> superTrendSeries,
+        IReadOnlyList<ParabolicSarPoint> parabolicSarSeries,
+        IReadOnlyList<DonchianChannelsPoint> donchianChannelsSeries,
+        IReadOnlyList<MfiPoint> mfiSeries,
+        IReadOnlyList<WilliamsPercentRPoint> williamsPercentRSeries,
+        IReadOnlyList<AroonPoint> aroonSeries)
     {
         var bars = RequireNonEmpty(priceSeries?.OrderBy(s => s.Date).ToList(), nameof(priceSeries));
         RequireNonEmpty(macdSeries, nameof(macdSeries));
@@ -102,6 +113,12 @@ public sealed class SignalAggregator
         RequireNonEmpty(cciSeries, nameof(cciSeries));
         RequireNonEmpty(chaikinMoneyFlowSeries, nameof(chaikinMoneyFlowSeries));
         RequireNonEmpty(keltnerChannelsSeries, nameof(keltnerChannelsSeries));
+        RequireNonEmpty(superTrendSeries, nameof(superTrendSeries));
+        RequireNonEmpty(parabolicSarSeries, nameof(parabolicSarSeries));
+        RequireNonEmpty(donchianChannelsSeries, nameof(donchianChannelsSeries));
+        RequireNonEmpty(mfiSeries, nameof(mfiSeries));
+        RequireNonEmpty(williamsPercentRSeries, nameof(williamsPercentRSeries));
+        RequireNonEmpty(aroonSeries, nameof(aroonSeries));
 
         var pricesByDate = bars.ToDictionary(s => s.Date, s => s.Close);
         var macdByDate = macdSeries.ToDictionary(p => p.PriceDate);
@@ -113,6 +130,12 @@ public sealed class SignalAggregator
         var cciByDate = cciSeries.ToDictionary(p => p.PriceDate);
         var chaikinMoneyFlowByDate = chaikinMoneyFlowSeries.ToDictionary(p => p.PriceDate);
         var keltnerChannelsByDate = keltnerChannelsSeries.ToDictionary(p => p.PriceDate);
+        var superTrendByDate = superTrendSeries.ToDictionary(p => p.PriceDate);
+        var parabolicSarByDate = parabolicSarSeries.ToDictionary(p => p.PriceDate);
+        var donchianChannelsByDate = donchianChannelsSeries.ToDictionary(p => p.PriceDate);
+        var mfiByDate = mfiSeries.ToDictionary(p => p.PriceDate);
+        var williamsPercentRByDate = williamsPercentRSeries.ToDictionary(p => p.PriceDate);
+        var aroonByDate = aroonSeries.ToDictionary(p => p.PriceDate);
 
         var commonDates = macdByDate.Keys
             .Intersect(rsiByDate.Keys)
@@ -123,6 +146,12 @@ public sealed class SignalAggregator
             .Intersect(cciByDate.Keys)
             .Intersect(chaikinMoneyFlowByDate.Keys)
             .Intersect(keltnerChannelsByDate.Keys)
+            .Intersect(superTrendByDate.Keys)
+            .Intersect(parabolicSarByDate.Keys)
+            .Intersect(donchianChannelsByDate.Keys)
+            .Intersect(mfiByDate.Keys)
+            .Intersect(williamsPercentRByDate.Keys)
+            .Intersect(aroonByDate.Keys)
             .OrderBy(date => date)
             .ToList();
 
@@ -144,8 +173,16 @@ public sealed class SignalAggregator
             var cci = cciByDate[date];
             var chaikinMoneyFlow = chaikinMoneyFlowByDate[date];
             var keltnerChannels = keltnerChannelsByDate[date];
+            var superTrend = superTrendByDate[date];
+            var parabolicSar = parabolicSarByDate[date];
+            var donchianChannels = donchianChannelsByDate[date];
+            var mfi = mfiByDate[date];
+            var williamsPercentR = williamsPercentRByDate[date];
+            var aroon = aroonByDate[date];
 
-            var (action, regime, confidence) = Evaluate(macd, rsi, bollinger, adx, obv, cci, chaikinMoneyFlow, keltnerChannels);
+            var (action, regime, confidence) = Evaluate(
+                macd, rsi, bollinger, adx, obv, cci, chaikinMoneyFlow, keltnerChannels,
+                superTrend, parabolicSar, donchianChannels, mfi, williamsPercentR, aroon);
 
             decimal? stopLossPrice = null;
             if (action != TradeAction.Hold && pricesByDate.TryGetValue(date, out var closePrice))
@@ -167,7 +204,9 @@ public sealed class SignalAggregator
     /// </summary>
     private static (TradeAction Action, MarketRegime Regime, decimal Confidence) Evaluate(
         MacdPoint macd, RsiPoint rsi, BollingerBandsPoint bollinger, AdxPoint adx, ObvPoint obv,
-        CciPoint cci, ChaikinMoneyFlowPoint chaikinMoneyFlow, KeltnerChannelsPoint keltnerChannels)
+        CciPoint cci, ChaikinMoneyFlowPoint chaikinMoneyFlow, KeltnerChannelsPoint keltnerChannels,
+        SuperTrendPoint superTrend, ParabolicSarPoint parabolicSar, DonchianChannelsPoint donchianChannels,
+        MfiPoint mfi, WilliamsPercentRPoint williamsPercentR, AroonPoint aroon)
     {
         if (adx.TrendStrength == AdxTrendStrength.Strong)
         {
@@ -176,11 +215,19 @@ public sealed class SignalAggregator
                 MacdCrossover.Bullish => (TradeAction.Buy, MarketRegime.Trending,
                     TrendingConfidence(
                         volumeConfirms: obv.Trend == ObvTrend.Bullish,
-                        volatilityExpansionConfirms: keltnerChannels.Signal == KeltnerChannelSignal.AboveUpperBand)),
+                        volatilityExpansionConfirms: keltnerChannels.Signal == KeltnerChannelSignal.AboveUpperBand,
+                        superTrendConfirms: superTrend.Trend == SuperTrendTrend.Bullish,
+                        parabolicSarConfirms: parabolicSar.Trend == ParabolicSarTrend.Bullish,
+                        donchianConfirms: donchianChannels.Signal == DonchianChannelSignal.AboveUpperBand,
+                        aroonConfirms: aroon.Trend == AroonTrend.Uptrend)),
                 MacdCrossover.Bearish => (TradeAction.Sell, MarketRegime.Trending,
                     TrendingConfidence(
                         volumeConfirms: obv.Trend == ObvTrend.Bearish,
-                        volatilityExpansionConfirms: keltnerChannels.Signal == KeltnerChannelSignal.BelowLowerBand)),
+                        volatilityExpansionConfirms: keltnerChannels.Signal == KeltnerChannelSignal.BelowLowerBand,
+                        superTrendConfirms: superTrend.Trend == SuperTrendTrend.Bearish,
+                        parabolicSarConfirms: parabolicSar.Trend == ParabolicSarTrend.Bearish,
+                        donchianConfirms: donchianChannels.Signal == DonchianChannelSignal.BelowLowerBand,
+                        aroonConfirms: aroon.Trend == AroonTrend.Downtrend)),
                 _ => (TradeAction.Hold, MarketRegime.Trending, NoConfidence)
             };
         }
@@ -189,14 +236,18 @@ public sealed class SignalAggregator
         {
             // Money flow still running negative under a Buy setup means the decline is
             // still being distributed into, not accumulated — a classic "falling knife".
-            // That's independent information a price oscillator can't see, so it vetoes
+            // That's independent information the oscillators below can't see, so it vetoes
             // the trade rather than merely lowering its confidence.
             if (chaikinMoneyFlow.Zone == ChaikinMoneyFlowZone.Bearish)
             {
                 return (TradeAction.Hold, MarketRegime.Ranging, NoConfidence);
             }
 
-            return (TradeAction.Buy, MarketRegime.Ranging, cci.Zone == CciZone.Oversold ? FullConfidence : ModerateConfidence);
+            return (TradeAction.Buy, MarketRegime.Ranging,
+                RangingConfidence(
+                    cciConfirms: cci.Zone == CciZone.Oversold,
+                    mfiConfirms: mfi.Zone == MfiZone.Oversold,
+                    williamsPercentRConfirms: williamsPercentR.Zone == WilliamsPercentRZone.Oversold));
         }
 
         if (bollinger.Signal == BollingerBandSignal.AboveUpperBand && rsi.Zone == RsiZone.Overbought)
@@ -208,30 +259,85 @@ public sealed class SignalAggregator
                 return (TradeAction.Hold, MarketRegime.Ranging, NoConfidence);
             }
 
-            return (TradeAction.Sell, MarketRegime.Ranging, cci.Zone == CciZone.Overbought ? FullConfidence : ModerateConfidence);
+            return (TradeAction.Sell, MarketRegime.Ranging,
+                RangingConfidence(
+                    cciConfirms: cci.Zone == CciZone.Overbought,
+                    mfiConfirms: mfi.Zone == MfiZone.Overbought,
+                    williamsPercentRConfirms: williamsPercentR.Zone == WilliamsPercentRZone.Overbought));
         }
 
         return (TradeAction.Hold, MarketRegime.Ranging, NoConfidence);
     }
 
     /// <summary>
-    /// Confidence for a Trending-regime MACD crossover, layered from two independent
-    /// confirmations: <paramref name="volumeConfirms"/> (OBV agrees with the crossover
-    /// direction) and <paramref name="volatilityExpansionConfirms"/> (price has broken the
-    /// same-direction Keltner band, indicating real volatility expansion behind the move
-    /// rather than a weak EMA cross). Both agreeing is the strongest read; the MACD
-    /// crossover alone, with neither confirming, is still enough to signal but at the
-    /// lowest confidence.
+    /// Confidence for a Trending-regime MACD crossover, scored by how many of six
+    /// independent confirmations agree with the crossover's direction: volume (OBV),
+    /// volatility expansion (Keltner Channels), and the directional state of SuperTrend,
+    /// Parabolic SAR, Donchian Channels, and Aroon. The MACD crossover alone, with nothing
+    /// confirming, is still enough to signal but at the lowest confidence; agreement from
+    /// most or all of the other six is the strongest read.
     /// </summary>
-    private static decimal TrendingConfidence(bool volumeConfirms, bool volatilityExpansionConfirms)
+    /// <remarks>
+    /// The thresholds (5+ of 6 for Full, 3+ for High, 1+ for Moderate) are starting
+    /// judgment calls, same as the regime thresholds on <see cref="AdxCalculator"/> itself,
+    /// and may need tuning against real trading results.
+    /// </remarks>
+    private static decimal TrendingConfidence(
+        bool volumeConfirms,
+        bool volatilityExpansionConfirms,
+        bool superTrendConfirms,
+        bool parabolicSarConfirms,
+        bool donchianConfirms,
+        bool aroonConfirms)
     {
-        return (volumeConfirms, volatilityExpansionConfirms) switch
+        int agreeing = CountTrue(
+            volumeConfirms, volatilityExpansionConfirms, superTrendConfirms,
+            parabolicSarConfirms, donchianConfirms, aroonConfirms);
+
+        return agreeing switch
         {
-            (true, true) => FullConfidence,
-            (true, false) => HighConfidence,
-            (false, true) => ModerateConfidence,
-            (false, false) => LowConfidence
+            >= 5 => FullConfidence,
+            >= 3 => HighConfidence,
+            >= 1 => ModerateConfidence,
+            _ => LowConfidence
         };
+    }
+
+    /// <summary>
+    /// Confidence for a Ranging-regime Bollinger+RSI setup (after the CMF veto has already
+    /// been checked), scored by how many of three independent oscillators agree with the
+    /// same overbought/oversold read: CCI, MFI, and Williams %R. All three agreeing is the
+    /// strongest read; the bare Bollinger+RSI setup, with none of them confirming, is still
+    /// enough to signal at a moderate confidence, matching this regime's original behavior
+    /// before CCI was the only available confirmation.
+    /// </summary>
+    /// <remarks>
+    /// The thresholds (3 of 3 for Full, 2 of 3 for High, otherwise Moderate) are starting
+    /// judgment calls and may need tuning against real trading results.
+    /// </remarks>
+    private static decimal RangingConfidence(bool cciConfirms, bool mfiConfirms, bool williamsPercentRConfirms)
+    {
+        int agreeing = CountTrue(cciConfirms, mfiConfirms, williamsPercentRConfirms);
+
+        return agreeing switch
+        {
+            3 => FullConfidence,
+            2 => HighConfidence,
+            _ => ModerateConfidence
+        };
+    }
+
+    private static int CountTrue(params bool[] confirmations)
+    {
+        int count = 0;
+        foreach (var confirms in confirmations)
+        {
+            if (confirms)
+            {
+                count++;
+            }
+        }
+        return count;
     }
 
     private static IReadOnlyList<T> RequireNonEmpty<T>(IReadOnlyList<T>? series, string paramName)

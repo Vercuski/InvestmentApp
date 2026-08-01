@@ -32,6 +32,12 @@ public static class DependencyInjection
         builder.Services.AddScoped<ChaikinMoneyFlowCalculator>();
         builder.Services.AddScoped<KeltnerChannelsCalculator>();
         builder.Services.AddScoped<MovingAverageCrossoverCalculator>();
+        builder.Services.AddScoped<SuperTrendCalculator>();
+        builder.Services.AddScoped<ParabolicSarCalculator>();
+        builder.Services.AddScoped<DonchianChannelsCalculator>();
+        builder.Services.AddScoped<MfiCalculator>();
+        builder.Services.AddScoped<WilliamsPercentRCalculator>();
+        builder.Services.AddScoped<AroonCalculator>();
         builder.Services.AddScoped<SignalAggregator>();
         return builder;
     }
