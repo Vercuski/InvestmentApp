@@ -20,17 +20,9 @@ var app = builder.Build();
 
 app.UseHangfireDashboard();
 
-if (!app.Environment.IsProduction())
-{
-    app.AddAppSwaggerConfiguration();
-}
-
-if (!app.Environment.IsProduction())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-}
-
+app.AddAppSwaggerConfiguration();
+app.MapOpenApi();
+app.MapScalarApiReference();
 app.MapControllers();
 app.AddInfrastructureApplicationRegistration();
 app.UseHttpsRedirection();

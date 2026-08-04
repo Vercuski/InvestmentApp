@@ -1,5 +1,6 @@
 using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.Repositories;
+using Microsoft.Extensions.Logging;
 using System.Net;
 
 namespace InvestmentApp.Application.Actions.TickerHandler.Commands;
@@ -8,7 +9,8 @@ public sealed record DownloadTickerSymbolsRequest() : IMediatRCommandRequest<Htt
 
 internal sealed class DownloadTickerSymbolsHandler(
     ITickerRepository tickerRepository,
-    IEodDataScraperService eodDataScraperService)
+    IEodDataScraperService eodDataScraperService,
+    ILogger<DownloadTickerSymbolsHandler> logger)
     : IMediatRCommandHandler<DownloadTickerSymbolsRequest, HttpStatusCode>
 {
     public async Task<HttpStatusCode> Handle(DownloadTickerSymbolsRequest request, CancellationToken cancellationToken)
@@ -18,14 +20,14 @@ internal sealed class DownloadTickerSymbolsHandler(
             var exchangeCodes = (await tickerRepository.GetExchangeCodesAsync()).ToList();
             if (exchangeCodes.Count == 0)
             {
-                Console.WriteLine("No exchange codes found in the Exchanges table.");
+                logger.LogWarning("No exchange codes found in the Exchanges table.");
                 return HttpStatusCode.NoContent;
             }
 
             var tickers = await eodDataScraperService.DownloadSymbolsAsync(exchangeCodes, cancellationToken);
             if (tickers.Count == 0)
             {
-                Console.WriteLine("No ticker symbols were downloaded from EODData.");
+                logger.LogWarning("No ticker symbols were downloaded from EODData.");
                 return HttpStatusCode.NoContent;
             }
 
@@ -33,7 +35,7 @@ internal sealed class DownloadTickerSymbolsHandler(
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred: {ex.StackTrace}");
+            logger.LogError(ex, "An error occurred while downloading ticker symbols from EODData.");
             throw;
         }
 

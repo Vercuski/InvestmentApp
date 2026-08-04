@@ -1,8 +1,10 @@
 ﻿using Dapper;
 using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.ConnectionFactory;
+using InvestmentApp.Application.Actions.StockDataHandler.Commands;
 using InvestmentApp.Application.Calculators;
 using InvestmentApp.Domain.Entities;
+using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Net;
 using Z.Dapper.Plus;
@@ -29,7 +31,8 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
     MfiCalculator mfiCalculator,
     WilliamsPercentRCalculator williamsPercentRCalculator,
     AroonCalculator aroonCalculator,
-    SignalAggregator signalAggregator)
+    SignalAggregator signalAggregator,
+    ILogger<RunCalculationHandler> logger)
     : IMediatRCommandHandler<RunCalculationRequest, HttpStatusCode>
 {
     public async Task<HttpStatusCode> Handle(RunCalculationRequest request
@@ -47,7 +50,7 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
                 var stockDataList = (await dbConnection.QueryAsync<StockData>($"SELECT [tickerSymbol], [open], [high], [low], [close], [volume], [date] FROM StockData WHERE [tickerSymbol] = '{tickerSymbol}' ORDER BY [date]")).ToList();
                 if (stockDataList.Count < 50)
                 {
-                    Console.WriteLine($"No stock data found for ticker: {tickerSymbol}");
+                    logger.LogInformation("No stock data found for ticker: {tickerSymbol}", tickerSymbol);
                     continue;
                 }
                 var macdCalculation = macdCalculator.Calculate(stockDataList);
@@ -90,7 +93,7 @@ internal class RunCalculationHandler(IDbConnectionFactory dbConnectionFactory,
         catch (Exception ex)
         {
             // Log the exception or handle it as needed
-            Console.WriteLine($"An error occurred: {ex.StackTrace}");
+            logger.LogError("An error occurred: {StackTrace}", ex.StackTrace);
             throw;
         }
         return statusCode;

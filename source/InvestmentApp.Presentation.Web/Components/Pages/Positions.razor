@@ -39,6 +39,7 @@ else
                 <MudTh>Confidence</MudTh>
                 <MudTh>Purchase price</MudTh>
                 <MudTh>Current price</MudTh>
+                <MudTh>Profit</MudTh>
                 <MudTh>Shares</MudTh>
                 <MudTh>Purchase date</MudTh>
                 <MudTh>Sell price</MudTh>
@@ -64,6 +65,19 @@ else
                     @if (context.TickerSymbol is not null && _currentPriceByTicker.TryGetValue(context.TickerSymbol, out var currentPrice))
                     {
                         <MudText Color="@GetCurrentPriceColor(currentPrice, context.PurchasePrice)">@currentPrice.ToString("C")</MudText>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Secondary">—</MudText>
+                    }
+                </MudTd>
+                <MudTd DataLabel="Profit">
+                    @{
+                        var profit = GetProfit(context);
+                    }
+                    @if (profit.HasValue)
+                    {
+                        <MudText Color="@GetProfitColor(profit.Value)">@profit.Value.ToString("C")</MudText>
                     }
                     else
                     {
@@ -131,6 +145,23 @@ else
     {
         if (currentPrice > purchasePrice) return Color.Success;
         if (currentPrice < purchasePrice) return Color.Error;
+        return Color.Default;
+    }
+
+    private decimal? GetProfit(PositionPoint position)
+    {
+        if (position.TickerSymbol is null || !_currentPriceByTicker.TryGetValue(position.TickerSymbol, out var currentPrice))
+        {
+            return null;
+        }
+
+        return (currentPrice - position.PurchasePrice) * position.NumberOfShares;
+    }
+
+    private static Color GetProfitColor(decimal profit)
+    {
+        if (profit > 0) return Color.Success;
+        if (profit < 0) return Color.Error;
         return Color.Default;
     }
 

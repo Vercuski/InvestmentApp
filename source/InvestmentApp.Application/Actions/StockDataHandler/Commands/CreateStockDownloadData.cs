@@ -1,7 +1,9 @@
 ﻿using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.ConnectionFactory;
+using InvestmentApp.Application.Exceptions;
 using InvestmentApp.Application.Services;
 using InvestmentApp.Domain.Entities;
+using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Net;
 using Z.Dapper.Plus;
@@ -11,7 +13,7 @@ namespace InvestmentApp.Application.Actions.StockDataHandler.Commands;
 
 public sealed record CreateStockDownloadRequest(List<Ticker> TickerList) : IMediatRCommandRequest<HttpStatusCode>;
 internal class CreateStockDownloadHandler(IDbConnectionFactory dbConnectionFactory, IVpnService vpnService,
-    IDataDownloadService dataDownloadService)
+    IDataDownloadService dataDownloadService, ILogger<CreateStockDownloadHandler> logger)
     : IMediatRCommandHandler<CreateStockDownloadRequest, HttpStatusCode>
 {
     public async Task<HttpStatusCode> Handle(CreateStockDownloadRequest request
@@ -37,7 +39,7 @@ internal class CreateStockDownloadHandler(IDbConnectionFactory dbConnectionFacto
                     (statusCode, Stock) = await dataDownloadService.GetStock(ticker);
                 }
                 completeList.AddRange(Stock);
-                Console.WriteLine($"Finsihed {count++} out of {max}");
+                logger.LogInformation("Finsihed {count} out of {max}", count++, max);
             }
             dbConnection.BulkInsert<StockData>(completeList);
             vpnService.DisconnectFromVPN();
@@ -45,7 +47,7 @@ internal class CreateStockDownloadHandler(IDbConnectionFactory dbConnectionFacto
         catch (Exception ex)
         {
             // Log the exception or handle it as needed
-            Console.WriteLine($"An error occurred: {ex.StackTrace}");
+            logger.LogError("An error occurred: {StackTrace}", ex.StackTrace);
             throw;
         }
         return statusCode;

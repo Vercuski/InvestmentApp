@@ -3,6 +3,7 @@ using InvestmentApp.Application.Abstractions.ConnectionFactory;
 using InvestmentApp.Application.Abstractions.Repositories;
 using InvestmentApp.Application.Services;
 using InvestmentApp.Domain.Entities;
+using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Net;
 using Z.Dapper.Plus;
@@ -12,7 +13,8 @@ namespace InvestmentApp.Application.Actions.StockDataHandler.Commands;
 public sealed record DownloadSingleStockDataPointRequest(Ticker Ticker) : IMediatRCommandRequest<HttpStatusCode>;
 internal class DownloadSingleStockDataPointHandler(IDbConnectionFactory dbConnectionFactory,
     IStockDataRepository stockDataRepository,
-    IDataDownloadService dataDownloadService)
+    IDataDownloadService dataDownloadService,
+    ILogger<DownloadSingleStockDataPointHandler> logger)
     : IMediatRCommandHandler<DownloadSingleStockDataPointRequest, HttpStatusCode>
 {
     public async Task<HttpStatusCode> Handle(DownloadSingleStockDataPointRequest request
@@ -32,7 +34,7 @@ internal class DownloadSingleStockDataPointHandler(IDbConnectionFactory dbConnec
         catch (Exception ex)
         {
             // Log the exception or handle it as needed
-            Console.WriteLine($"An error occurred: {ex.StackTrace}");
+            logger.LogError(ex, "An error occurred while downloading single stock data point.");
             throw;
         }
         return statusCode;

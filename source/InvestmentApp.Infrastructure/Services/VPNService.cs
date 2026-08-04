@@ -1,9 +1,10 @@
 ﻿using InvestmentApp.Application.Services;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace InvestmentApp.Infrastructure.Services;
 
-public class VPNService : IVpnService
+public class VPNService(ILogger<VPNService> logger) : IVpnService
 {
     public void ConnectToVPN(string countryName)
     {
@@ -28,12 +29,12 @@ public class VPNService : IVpnService
             //string output = process!.StandardOutput.ReadToEnd();
             //process.WaitForExit();
             //Console.WriteLine(output);
-            Console.WriteLine($"Attempting to connect to {countryName}...");
+            logger.LogInformation("Attempting to connect to {countryName}", countryName);
             Task.Delay(20000).Wait();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            logger.LogError(ex, "An error occurred while connecting to {countryName}.", countryName);
         }
     }
 
@@ -54,11 +55,11 @@ public class VPNService : IVpnService
 
             using Process? process = Process.Start(startInfo);
             process!.WaitForExit();
-            Console.WriteLine("Attempting to disconnect...");
+            logger.LogInformation("Attempting to disconnect");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            logger.LogError(ex, "An error occurred while disconnecting from VPN.");
         }
     }
 }

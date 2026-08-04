@@ -1,12 +1,15 @@
 using InvestmentApp.Application.Abstractions;
+using InvestmentApp.Application.Actions.CalculationHandler.Commands;
 using InvestmentApp.Domain.Entities;
+using Microsoft.Extensions.Logging;
 using System.Net;
 
 namespace InvestmentApp.Application.Actions.ExchangeHandler.Commands;
 
 public sealed record UpdateExchangeActiveStatesRequest(List<ExchangePoint> Exchanges) : IMediatRCommandRequest<HttpStatusCode>;
 
-internal sealed class UpdateExchangeActiveStatesHandler(IExchangeRepository exchangeRepository)
+internal sealed class UpdateExchangeActiveStatesHandler(IExchangeRepository exchangeRepository,
+    ILogger<UpdateExchangeActiveStatesHandler> logger)
     : IMediatRCommandHandler<UpdateExchangeActiveStatesRequest, HttpStatusCode>
 {
     public async Task<HttpStatusCode> Handle(
@@ -24,7 +27,7 @@ internal sealed class UpdateExchangeActiveStatesHandler(IExchangeRepository exch
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred: {ex.StackTrace}");
+            logger.LogError("An error occurred: {StackTrace}", ex.StackTrace);
             throw;
         }
 

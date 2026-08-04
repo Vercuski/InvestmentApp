@@ -1,6 +1,7 @@
 using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Domain.Entities;
 using InvestmentApp.Domain.Options;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -19,7 +20,8 @@ namespace InvestmentApp.Infrastructure.Services;
 /// session; the resulting session cookies are then reused on a plain HttpClient
 /// to pull each exchange's symbol list without re-driving the browser per request.
 /// </summary>
-public class EodDataScraperService(IOptions<EodDataOptions> eodDataOptions) : IEodDataScraperService
+public class EodDataScraperService(IOptions<EodDataOptions> eodDataOptions,
+    ILogger<EodDataScraperService> logger) : IEodDataScraperService
 {
     private const string LoginUrl = "https://eoddata.com/Login.aspx";
     private const string SymbolListUrlTemplate = "https://eoddata.com/Data/symbollist.aspx?e={0}";
@@ -55,7 +57,7 @@ public class EodDataScraperService(IOptions<EodDataOptions> eodDataOptions) : IE
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to download symbol list for exchange '{exchangeCode}': {ex.Message}");
+                logger.LogError("Failed to download symbol list for exchange '{exchangeCode}': {Message}", exchangeCode, ex.Message);
                 continue;
             }
 
