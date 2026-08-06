@@ -68,10 +68,6 @@ public static class DependencyInjection
         builder.Services.AddHttpClient<IDataDownloadService, DataDownloadService>(client =>
             client.BaseAddress = new Uri("https://query2.finance.yahoo.com/")
         );
-        builder.Services.AddHttpClient("localhost", client =>
-        {
-            client.BaseAddress = new Uri("https://localhost:8080/");
-        });
         builder.Services.AddScoped<IEodDataScraperService, EodDataScraperService>();
         builder.Services.AddScoped<IScheduledJobsService, ScheduledJobsService>();
         return builder;

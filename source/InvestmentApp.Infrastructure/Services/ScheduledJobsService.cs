@@ -1,25 +1,24 @@
-﻿using InvestmentApp.Application.Services;
+﻿using InvestmentApp.Application.Actions.CalculationHandler.Commands;
+using InvestmentApp.Application.Actions.StockDataHandler.Commands;
+using InvestmentApp.Application.Actions.StockDataHandler.Queries;
+using InvestmentApp.Application.Actions.TickerHandler.Queries;
+using InvestmentApp.Application.Services;
+using MediatR;
 
 namespace InvestmentApp.Infrastructure.Services;
 
-public sealed class ScheduledJobsService(IHttpClientFactory httpClientFactory) : IScheduledJobsService
+public sealed class ScheduledJobsService(IMediator mediator) : IScheduledJobsService
 {
     public async Task RunDailyDownloadAndCalculationAsync()
     {
-        var client = httpClientFactory.CreateClient("localhost");
-
-        var downloadResponse = await client.PostAsync("api/StockData/Download/All", content: null);
-        downloadResponse.EnsureSuccessStatusCode();
-
-        var calculationResponse = await client.PostAsync("api/Calculation", content: null);
-        calculationResponse.EnsureSuccessStatusCode();
+        var tickerList = await mediator.Send(new GetTickerListRequest());
+        await mediator.Send(new CreateStockDownloadRequest(tickerList));
+        await mediator.Send(new RunCalculationRequest());
     }
 
     public async Task DownloadOpenPositionStockDataAsync()
     {
-        var client = httpClientFactory.CreateClient("localhost");
-
-        var response = await client.PostAsync("api/StockData/Download/OpenPositions", content: null);
-        response.EnsureSuccessStatusCode();
+        var tickerList = await mediator.Send(new GetOpenPositionTickersRequest());
+        await mediator.Send(new CreateStockDownloadForTickersRequest(tickerList));
     }
 }
