@@ -30,6 +30,16 @@ else if (_positions.Count == 0)
 }
 else
 {
+    <MudStack Row="true" Spacing="4" Class="mb-4">
+        <MudPaper Class="pa-4" Elevation="1" Style="min-width:160px;">
+            <MudText Typo="Typo.caption" Color="Color.Success">Profit</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Success">@TotalProfit.ToString("C")</MudText>
+        </MudPaper>
+        <MudPaper Class="pa-4" Elevation="1" Style="min-width:160px;">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">Loss</MudText>
+            <MudText Typo="Typo.h6" Color="Color.Error">@TotalLoss.ToString("C")</MudText>
+        </MudPaper>
+    </MudStack>
     <MudPaper Class="pa-4" Elevation="1">
         <MudTable Items="_positions" Hover="true" Dense="true" Elevation="0">
             <HeaderContent>
@@ -165,6 +175,15 @@ else
         return Color.Default;
     }
 
+    private decimal TotalProfit => _positions
+    .Select(GetProfit)
+    .Where(p => p.HasValue && p.Value > 0)
+    .Sum(p => p!.Value);
+
+    private decimal TotalLoss => _positions
+        .Select(GetProfit)
+        .Where(p => p.HasValue && p.Value < 0)
+        .Sum(p => p!.Value);
 
     protected override async Task OnInitializedAsync()
     {
