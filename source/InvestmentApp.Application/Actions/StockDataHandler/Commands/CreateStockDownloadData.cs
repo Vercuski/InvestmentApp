@@ -1,6 +1,5 @@
 ﻿using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.ConnectionFactory;
-using InvestmentApp.Application.Exceptions;
 using InvestmentApp.Application.Services;
 using InvestmentApp.Domain.Entities;
 using Microsoft.Extensions.Logging;

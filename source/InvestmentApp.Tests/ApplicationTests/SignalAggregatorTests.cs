@@ -1,7 +1,6 @@
 ﻿using InvestmentApp.Application.Calculators;
 using InvestmentApp.Domain.Entities;
 using InvestmentApp.Domain.Enums;
-using Org.BouncyCastle.Math.EC;
 
 namespace InvestmentApp.Tests.ApplicationTests;
 
@@ -28,55 +27,90 @@ public class SignalAggregatorTests
 
     #region Series factories
 
-    private static IReadOnlyList<StockData> PriceSeries(DateTime date, decimal close = 100m) =>
-        [new(Ticker, close, close, close, close, 1_000_000, date)];
+    private static IReadOnlyList<StockData> PriceSeries(DateTime date, decimal close = 100m)
+    {
+        return [new(Ticker, close, close, close, close, 1_000_000, date)];
+    }
 
-    private static IReadOnlyList<MacdPoint> MacdSeries(DateTime date, MacdCrossover crossover = MacdCrossover.None) =>
-        [new(Ticker, date, 0m, 0m, 0m, crossover)];
+    private static IReadOnlyList<MacdPoint> MacdSeries(DateTime date, MacdCrossover crossover = MacdCrossover.None)
+    {
+        return [new(Ticker, date, 0m, 0m, 0m, crossover)];
+    }
 
-    private static IReadOnlyList<RsiPoint> RsiSeries(DateTime date, RsiZone zone = RsiZone.Neutral) =>
-        [new(Ticker, date, 50m, zone)];
+    private static IReadOnlyList<RsiPoint> RsiSeries(DateTime date, RsiZone zone = RsiZone.Neutral)
+    {
+        return [new(Ticker, date, 50m, zone)];
+    }
 
-    private static IReadOnlyList<BollingerBandsPoint> BollingerSeries(DateTime date, BollingerBandSignal signal = BollingerBandSignal.WithinBands) =>
-        [new(Ticker, date, 100m, 100m, 110m, 90m, signal)];
+    private static IReadOnlyList<BollingerBandsPoint> BollingerSeries(DateTime date, BollingerBandSignal signal = BollingerBandSignal.WithinBands)
+    {
+        return [new(Ticker, date, 100m, 100m, 110m, 90m, signal)];
+    }
 
-    private static IReadOnlyList<AdxPoint> AdxSeries(DateTime date, AdxTrendStrength strength = AdxTrendStrength.Weak) =>
-        [new(Ticker, date, 20m, 15m, 15m, strength)];
+    private static IReadOnlyList<AdxPoint> AdxSeries(DateTime date, AdxTrendStrength strength = AdxTrendStrength.Weak)
+    {
+        return [new(Ticker, date, 20m, 15m, 15m, strength)];
+    }
 
-    private static IReadOnlyList<ObvPoint> ObvSeries(DateTime date, ObvTrend trend = ObvTrend.None) =>
-        [new(Ticker, date, 1_000m, 1_000m, trend)];
+    private static IReadOnlyList<ObvPoint> ObvSeries(DateTime date, ObvTrend trend = ObvTrend.None)
+    {
+        return [new(Ticker, date, 1_000m, 1_000m, trend)];
+    }
 
-    private static IReadOnlyList<AtrPoint> AtrSeries(DateTime date, decimal value = 2m) =>
-        [new(Ticker, date, value)];
+    private static IReadOnlyList<AtrPoint> AtrSeries(DateTime date, decimal value = 2m)
+    {
+        return [new(Ticker, date, value)];
+    }
 
-    private static IReadOnlyList<CciPoint> CciSeries(DateTime date, CciZone zone = CciZone.Neutral) =>
-        [new(Ticker, date, 0m, zone)];
+    private static IReadOnlyList<CciPoint> CciSeries(DateTime date, CciZone zone = CciZone.Neutral)
+    {
+        return [new(Ticker, date, 0m, zone)];
+    }
 
-    private static IReadOnlyList<ChaikinMoneyFlowPoint> CmfSeries(DateTime date, ChaikinMoneyFlowZone zone = ChaikinMoneyFlowZone.Neutral) =>
-        [new(Ticker, date, 0m, zone)];
+    private static IReadOnlyList<ChaikinMoneyFlowPoint> CmfSeries(DateTime date, ChaikinMoneyFlowZone zone = ChaikinMoneyFlowZone.Neutral)
+    {
+        return [new(Ticker, date, 0m, zone)];
+    }
 
-    private static IReadOnlyList<KeltnerChannelsPoint> KeltnerSeries(DateTime date, KeltnerChannelSignal signal = KeltnerChannelSignal.WithinChannel) =>
-        [new(Ticker, date, 100m, 100m, 110m, 90m, signal)];
+    private static IReadOnlyList<KeltnerChannelsPoint> KeltnerSeries(DateTime date, KeltnerChannelSignal signal = KeltnerChannelSignal.WithinChannel)
+    {
+        return [new(Ticker, date, 100m, 100m, 110m, 90m, signal)];
+    }
 
-    private static IReadOnlyList<SuperTrendPoint> SuperTrendSeries(DateTime date, SuperTrendTrend trend = SuperTrendTrend.Bullish) =>
-        [new(Ticker, date, 100m, trend)];
+    private static IReadOnlyList<SuperTrendPoint> SuperTrendSeries(DateTime date, SuperTrendTrend trend = SuperTrendTrend.Bullish)
+    {
+        return [new(Ticker, date, 100m, trend)];
+    }
 
-    private static IReadOnlyList<ParabolicSarPoint> ParabolicSarSeries(DateTime date, ParabolicSarTrend trend = ParabolicSarTrend.Bullish) =>
-        [new(Ticker, date, 100m, trend)];
+    private static IReadOnlyList<ParabolicSarPoint> ParabolicSarSeries(DateTime date, ParabolicSarTrend trend = ParabolicSarTrend.Bullish)
+    {
+        return [new(Ticker, date, 100m, trend)];
+    }
 
-    private static IReadOnlyList<DonchianChannelsPoint> DonchianSeries(DateTime date, DonchianChannelSignal signal = DonchianChannelSignal.WithinChannel) =>
-        [new(Ticker, date, 100m, 110m, 100m, 90m, signal)];
+    private static IReadOnlyList<DonchianChannelsPoint> DonchianSeries(DateTime date, DonchianChannelSignal signal = DonchianChannelSignal.WithinChannel)
+    {
+        return [new(Ticker, date, 100m, 110m, 100m, 90m, signal)];
+    }
 
-    private static IReadOnlyList<MfiPoint> MfiSeries(DateTime date, MfiZone zone = MfiZone.Neutral) =>
-        [new(Ticker, date, 50m, zone)];
+    private static IReadOnlyList<MfiPoint> MfiSeries(DateTime date, MfiZone zone = MfiZone.Neutral)
+    {
+        return [new(Ticker, date, 50m, zone)];
+    }
 
-    private static IReadOnlyList<WilliamsPercentRPoint> WilliamsPercentRSeries(DateTime date, WilliamsPercentRZone zone = WilliamsPercentRZone.Neutral) =>
-        [new(Ticker, date, -50m, zone)];
+    private static IReadOnlyList<WilliamsPercentRPoint> WilliamsPercentRSeries(DateTime date, WilliamsPercentRZone zone = WilliamsPercentRZone.Neutral)
+    {
+        return [new(Ticker, date, -50m, zone)];
+    }
 
-    private static IReadOnlyList<AroonPoint> AroonSeries(DateTime date, AroonTrend trend = AroonTrend.Neutral) =>
-        [new(Ticker, date, 50m, 50m, 0m, trend)];
+    private static IReadOnlyList<AroonPoint> AroonSeries(DateTime date, AroonTrend trend = AroonTrend.Neutral)
+    {
+        return [new(Ticker, date, 50m, 50m, 0m, trend)];
+    }
 
-    private static List<T> Concat<T>(params IReadOnlyList<T>[] lists) => [.. lists.SelectMany(l => l)];
+    private static List<T> Concat<T>(params IReadOnlyList<T>[] lists)
+    {
+        return [.. lists.SelectMany(l => l)];
+    }
 
     #endregion
 
@@ -213,10 +247,12 @@ public class SignalAggregatorTests
         public IReadOnlyList<WilliamsPercentRPoint>? WilliamsPercentR { get; set; } = WilliamsPercentRSeries(BaseDate);
         public IReadOnlyList<AroonPoint>? Aroon { get; set; } = AroonSeries(BaseDate);
 
-        public IReadOnlyList<TradeSignalPoint> Invoke(SignalAggregator aggregator) =>
-            aggregator.Calculate(
+        public IReadOnlyList<TradeSignalPoint> Invoke(SignalAggregator aggregator)
+        {
+            return aggregator.Calculate(
                 Prices!, Macd!, Rsi!, Bollinger!, Adx!, Obv!, Atr!, Cci!, Cmf!, Keltner!,
                 SuperTrend!, ParabolicSar!, Donchian!, Mfi!, WilliamsPercentR!, Aroon!);
+        }
     }
 
     private static void AssertThrowsForMissingSeries(Action<ValidCalculateArgs> makeInvalid, string expectedParamName)

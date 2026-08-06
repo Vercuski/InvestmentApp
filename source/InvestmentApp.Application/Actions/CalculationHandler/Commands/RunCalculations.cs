@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using InvestmentApp.Application.Abstractions;
 using InvestmentApp.Application.Abstractions.ConnectionFactory;
-using InvestmentApp.Application.Actions.StockDataHandler.Commands;
 using InvestmentApp.Application.Calculators;
 using InvestmentApp.Domain.Entities;
 using Microsoft.Extensions.Logging;
